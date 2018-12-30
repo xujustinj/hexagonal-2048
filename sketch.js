@@ -63,6 +63,9 @@ function reset() {
     // 3. Determine the starting tiles.
     spawn(initialSpawn);
 
+    // 4. Allow input.
+    ready = true;
+
 }
 
 
@@ -169,6 +172,9 @@ function drawScore() {
 
 
 function keyPressed() {
+    if (!ready) {
+        return;
+    }
 
     if (moveFrames > 5) { // Inputs are locked while the tiles are moving.
         return;           //   For smoothness, inputs unlock for the last
@@ -197,6 +203,10 @@ function keyPressed() {
 
 
 function touchStarted() {
+    if (!ready) {
+        return false;
+    }
+
     touchStart.x = mouseX;
     touchStart.y = mouseY;
     touchStart.t = frameCount;
@@ -207,6 +217,10 @@ function touchStarted() {
 
 
 function touchEnded() {
+    if (!ready) {
+        return false;
+    }
+
     let delta = {
         x: mouseX - touchStart.x,
         y: mouseY - touchStart.y,
@@ -312,7 +326,7 @@ function retarget(from, to) {
 
 
 function windowResized() {
-    if (canvas) {
+    if (ready) {
         canvas.position((windowWidth - width) / 2, (windowHeight - height) / 2);
     }
 }

@@ -195,6 +195,7 @@ var moveFrames = 0;     // The number of frames remaining in the tile-sliding
                     //   animation following a move.
 var lose   = false; // Whether or not the player can move.
 var score  = 0;     // The player's score.
+var ready  = false; // Whether or not the game is ready to accept inputs.
 
 var touchStart = {
     x: 0,  // The x-coordinate of the touch.
