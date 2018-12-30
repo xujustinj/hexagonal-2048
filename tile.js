@@ -1,113 +1,153 @@
-const space = 12;
+function Tile(n) {
 
-function Tile() {
+    // n is the tile's arbitrary index in the 1-D array of tiles. The simplest
+    //   way to arrange a linear sequence of tiles into the hexagonal pattern of
+    //   the game board is to contruct a hexagonal spiral.
+    //   x   a   b   c   d   e
+    // y +----------------------
+    // a |          10
+    // b |      11      09
+    // c |  12      02      08
+    // d |      03      01
+    // e |  13      00      07
+    // f |      04      06
+    // g |  14      05      18
+    // h |      15      17
+    // i |          16
 
-  this.id = 0;
-  this.sideLength = 64;
+    // Tiles are painted up to twice. Normally, the tile is painted at its
+    //   position shown above. Upon making a move, nonempty tiles slide in the
+    //   direction of the move if possible, to some destination position. During
+    //   the move, the original position of the tile is painted as empty, while
+    //   it is painted at some location along the path of motion.
 
-  this.value = 0;
-  this.colour = colours[0];
 
-  // This default behaviour is poor communication and should be put into the define function instead.
-  this.shouldX = this.x = centre;
-  this.shouldY = this.y = centre;
-
-  this.define = function(n) {
     this.id = n;
-    this.sideLength = 64;
 
-    if ((n == 12) || (n == 13) || (n == 14)) {
-      this.shouldX = this.x -= this.sideLength * 3 + space * sin60 * 2;
-    } else if ((n == 3) || (n == 4) || (n == 11) || (n == 15)) {
-      this.shouldX = this.x -= this.sideLength * 1.5 + space * sin60;
-    } else if ((n == 1) || (n == 6) || (n == 9) || (n == 17)) {
-      this.shouldX = this.x += this.sideLength * 1.5 + space * sin60;
-    } else if ((n == 7) || (n == 8) || (n == 18)) {
-      this.shouldX = this.x += this.sideLength * 3 + space * sin60 * 2;
-    }
 
-    if (n == 10) {
-      this.shouldY = this.y -= this.sideLength * sin60 * 4 + space * 2;
-    } else if ((n == 9) || (n == 11)) {
-      this.shouldY = this.y -= this.sideLength * sin60 * 3 + space * 1.5;
-    } else if ((n == 2) || (n == 8) || (n == 12)) {
-      this.shouldY = this.y -= this.sideLength * sin60 * 2 + space;
-    } else if ((n == 1) || (n == 3)) {
-      this.shouldY = this.y -= this.sideLength * sin60 + space * 0.5;
-    } else if ((n == 4) || (n == 6)) {
-      this.shouldY = this.y += this.sideLength * sin60 + space * 0.5;
-    } else if ((n == 5) || (n == 14) || (n == 18)) {
-      this.shouldY = this.y += this.sideLength * sin60 * 2 + space;
-    } else if ((n == 15) || (n == 17)) {
-      this.shouldY = this.y += this.sideLength * sin60 * 3 + space * 1.5;
-    } else if (n == 16) {
-      this.shouldY = this.y += this.sideLength * sin60 * 4 + space * 2;
-    }
-  }
+    // Position properties.
 
-  this.move = function() {
-    this.sideLength = 64;
+    this.x = x[n]; // The x-coordinate of the centre of this tile.
+    this.y = y[n]; // The y-coordinate of the centre-of this tile.
 
-    if (moving > 5) {
-      this.x = tiles[target[this.id]].x - (moving - 5) * (tiles[target[this.id]].x - this.shouldX) / 11;
-      this.y = tiles[target[this.id]].y - (moving - 5) * (tiles[target[this.id]].y - this.shouldY) / 11;
-    } else if ((before[this.id] < tiles[target[this.id]].value) && ((moving == 5) || (moving == 1))) {
-      this.sideLength = 66;
-      this.x = tiles[target[this.id]].x;
-      this.y = tiles[target[this.id]].y;
-    } else if ((before[this.id] < tiles[target[this.id]].value) && ((moving == 4) || (moving == 2))) {
-      this.sideLength = 68;
-      this.x = tiles[target[this.id]].x;
-      this.y = tiles[target[this.id]].y;
-    } else if ((before[this.id] < tiles[target[this.id]].value) && (moving == 3)) {
-      this.sideLength = 72;
-      this.x = tiles[target[this.id]].x;
-      this.y = tiles[target[this.id]].y;
-    } else if (moving > 0) {
-      this.x = tiles[target[this.id]].x;
-      this.y = tiles[target[this.id]].y;
-    }
-  }
 
-  this.setValue = function(n) { // use an array instead.
-    this.value = n;
+    // Display properties.
+
+    this.value = 0; // The base-2 logarithm of the number displayed on this
+                    // tile, or 0 when this tile is empty.
+    this.colour = colours[this.value]; // The fill colour of this tile.
+
+    this.previousValue = 0; // The previous value of this tile.
+    this.previousColour = colours[this.previousValue]; // The previous fill
+                                                       //   colour of this tile.
+
+
+    // Motion properties.
+
+    this.target = 0; // The index of the tile occupying the position that this
+                     //   tile is moving to (if it is moving).
+    this.spawning = false; // Whether or not this tile has been selected as the
+                           //   location of a random spawn. Affects how the tile
+                           //   is painted with paintMotion().
+    this.merging  = false; // Whether or not the value to be displayed on this
+                           //   tile is the result of a merge.
+
+}
+
+
+// Editing methods.
+
+Tile.prototype.setValue = function(n) {
+    // 1. Update the value and colour of the tile.
+    this.value  = n;
     this.colour = colours[n];
-  }
+}
 
-  this.paintDummy = function() {
-    paint_regular_hexagon(this.x, this.y, this.sideLength, colours[0]);
-  }
+Tile.prototype.clear = function() {
+    // 1. Update the value and colour of the tile.
+    this.setValue(0);
+}
 
-  this.paint = function() {
-    paint_regular_hexagon(this.x, this.y, this.sideLength, colours[this.value]);
-  }
+Tile.prototype.spawn = function(n) {
+    // 1. Update the value and colour of the tile.
+    this.setValue(n);
+    
+    // 2. Update the value of this.spawning.
+    this.spawning = true;
+}
 
-  this.text = function() {
-    var num = pow(2, this.value);
-    var length = (num + "").length; // digits
+Tile.prototype.merge = function() {
+    // 1. Update the value and colour of the tile.
+    this.value ++;
+    this.colour = colours[this.value];
 
-    textAlign(CENTER, CENTER);
+    // 2. Update the value of this.merging.
+    this.merging = true;
 
-    if (length < 3) {
-      textSize(52);
-    } else if (length < 4) {
-      textSize(48);
-    } else if (length < 5) {
-      textSize(44);
-    } else if (length < 6) {
-      textSize(40);
-    } else if (length < 7) {
-      textSize(36);
-    } else {
-      textSize(32);
+    // 3. Update the score.
+    score += (1 << this.value);
+}
+
+
+// Display methods.
+
+Tile.prototype.paintBlank = function () {
+    paintRegularHexagon(this.x, this.y, sideLength, colours[0]);
+}
+
+Tile.prototype.paintSlide = function (t) {
+    if (this.previousValue != 0) {
+        let x = tiles[this.target].x * t + this.x * (1 - t);
+        let y = tiles[this.target].y * t + this.y * (1 - t);
+        paintRegularHexagon(x, y, sideLength, this.previousColour);
+        this.text(this.previousValue, x, y);
+    }
+}
+
+Tile.prototype.paintSpawn = function (t) {
+    if (this.spawning) {
+        paintRegularHexagon(this.x, this.y, sideLength * t, this.colour);
+    }
+}
+
+Tile.prototype.paintFlash = function (t) {
+    if (this.spawning || this.merging) {
+        paintRegularHexagon(this.x, this.y, sideLength * t, this.colour);
+        this.text(this.value, this.x, this.y);
+    }
+}
+
+Tile.prototype.paintPlain = function () {
+    paintRegularHexagon(this.x, this.y, sideLength, this.colour);
+    this.text(this.value, this.x, this.y);
+}
+
+Tile.prototype.text = function(n, x, y) {
+    // 1. Determine the font size, dependent on the number to be displayed.
+    if (n === 0) {       // Display nothing.
+        return;
+    } else if (n <  7) { // Display 1 or 2 digits.
+        textSize(45);
+    } else if (n < 10) { // Display 3 digits.
+        textSize(40);
+    } else if (n < 14) { // Display 4 digits.
+        textSize(35);
+    } else if (n < 17) { // Display 5 digits.
+        textSize(30);
+    } else if (n < 20) { // Display 6 digits.
+        textSize(25);
+    } else {                      // Display 7 digits.
+        textSize(20);
     }
 
-    if (this.value > 2) {
-      fill(249, 246, 242);
-      text(num, this.x, this.y);
-    } else if (this.value > 0) {
-      fill(119, 110, 101);
-      text(num, this.x, this.y);
-    } // else (this.value == 0) -> do nothing
-  }
+    // 2. Determine the text colour.
+    if (n > 2) {
+        fill(249, 246, 242);
+    } else {
+        fill(119, 110, 101);
+    }
+
+    // 3. Paint the text.
+    textAlign(CENTER, CENTER);
+    text(1 << n, x, y);
 }
