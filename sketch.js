@@ -1,6 +1,6 @@
 function preload() {
     // font = 'Calibri';
-    font = loadFont('Clear Sans');
+    font = loadFont("fonts/clearsans.bold.ttf");
 }
 
 
@@ -312,5 +312,7 @@ function retarget(from, to) {
 
 
 function windowResized() {
-    canvas.position((windowWidth - width) / 2, (windowHeight - height) / 2);
+    if (canvas) {
+        canvas.position((windowWidth - width) / 2, (windowHeight - height) / 2);
+    }
 }
