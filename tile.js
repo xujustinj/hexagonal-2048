@@ -71,7 +71,7 @@ Tile.prototype.clear = function() {
 Tile.prototype.spawn = function(n) {
     // 1. Update the value and colour of the tile.
     this.setValue(n);
-    
+
     // 2. Update the value of this.spawning.
     this.spawning = true;
 }
@@ -142,12 +142,11 @@ Tile.prototype.text = function(n, x, y) {
 
     // 2. Determine the text colour.
     if (n > 2) {
-        fill(249, 246, 242);
+        fill(lightTextColour);
     } else {
-        fill(119, 110, 101);
+        fill(darkTextColour);
     }
 
     // 3. Paint the text.
-    textAlign(CENTER, CENTER);
     text(1 << n, x, y);
 }

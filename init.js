@@ -142,9 +142,7 @@ function unmoved() { // Whether or not the last player input moved any tiles.
 
 // Style constants.
 
-const font = 'Calibri'; // The original 2048 game uses 'Clear Sans'. Since p5
-                        //   does not seem to handle that font, Calibri is a
-                        //   close and web-safe alternative.
+var font = '';
 
 // Unfortunately, color(...) is not accessible outside of the setup() and draw()
 //   methods.
@@ -154,6 +152,10 @@ var colours  = []; // Contains the 21 (counting duplicates) possible fill
                    //   is the colour of all tiles displaying the value 2^n, or
                    //   the colour of the empty tile when n = 0. The greatest
                    //   possible tile value achievable on the board is 2^20.
+var lightTextColour = {}; // color(249, 246, 242), the text colour of all tiles
+                          //   other than the 2 and 4 tiles.
+var darkTextColour  = {}; // color(119, 110, 101), the text colour of the 2 and
+                          //   4 tiles.
 /*
     colours = [
         // From the original game.

@@ -1,3 +1,9 @@
+function preload() {
+    // font = 'Calibri';
+    font = loadFont('Clear Sans');
+}
+
+
 function setup() {
 
     // 1. Create and centre the canvas.
@@ -6,9 +12,10 @@ function setup() {
     frameRate(fps);
 
     // 2. Define the colour scheme and style.
-    colorMode(RGB, 255);
+    textAlign(CENTER, CENTER);
     textFont(font);
     noStroke();
+    colorMode(RGB, 255);
     bgColour = color(187, 173, 160);
     colours = [
         color(205, 193, 180),  // empty
@@ -32,6 +39,8 @@ function setup() {
         color( 10, 144, 170),  //  262114
         color( 20, 164, 150),  //  524288
         color( 30, 184, 130)]; // 1048576
+    lightTextColour = color(249, 246, 242);
+    darkTextColour  = color(119, 110, 101);
 
     // 3. Reset the game internal variables.
     reset();
@@ -109,8 +118,7 @@ function spawn(n) {
 
 function draw() {
 
-    // 1. Recentre and repaint the canvas.
-    canvas.position((windowWidth - width) / 2, (windowHeight - height) / 2);
+    // 1. Repaint the canvas.
     background(bgColour);
 
     if (moveFrames > 5) {
@@ -130,9 +138,8 @@ function draw() {
             refreshTiles();
         }
     } else { // (moveFrames === 0)
-        for (var i = 0; i < tiles.length; i ++) {
-            tiles[i].paintPlain();
-        }
+        tiles.forEach(function (tile) {tile.paintPlain();});
+        noLoop();
     }
 
     drawScore();
@@ -152,10 +159,12 @@ function refreshTiles() {
 
 
 function drawScore() {
-    fill(255);
+    push();
+    fill(lightTextColour);
     textSize(32);
     textAlign(RIGHT, BOTTOM);
     text("Score: " + score, width - 8, height - 4);
+    pop();
 }
 
 
@@ -251,6 +260,8 @@ function move(direction) {
     spawn(moveSpawn);
     lose = full() && stuck();
     moveFrames = 15;
+
+    loop();
 }
 
 
@@ -297,4 +308,9 @@ function retarget(from, to) {
             tiles[i].target = to;
         }
     }
+}
+
+
+function windowResized() {
+    canvas.position((windowWidth - width) / 2, (windowHeight - height) / 2);
 }
