@@ -23,15 +23,15 @@ function setup() {
         color(237, 201,  80),  //     512
         color(237, 197,  63),  //    1024
         color(237, 194,  46),  //    2048
-        color(146, 223,  99),  //    4096
-        color(132, 226,  72),  //    8192
-        color(135, 228,  49),  //   16384
-        color(107, 228,  21),  //   32768
-        color(107, 154,  88),  //   65536
-        color(107,  87, 161),  //  131072
-        color(107,  87, 161),  //  262114
-        color(107,  87, 161),  //  524288
-        color(107,  87, 161)]; // 1048576
+        color(239, 103, 108),  //    4096
+        color(237,  77,  88),  //    8192
+        color(226,  67,  57),  //   16384
+        color(113, 180, 213),  //   32768
+        color( 94, 160, 223),  //   65536
+        color(  0, 124, 190),  //  131072
+        color( 10, 144, 170),  //  262114
+        color( 20, 164, 150),  //  524288
+        color( 30, 184, 130)]; // 1048576
 
     // 3. Reset the game internal variables.
     reset();
@@ -168,68 +168,89 @@ function keyPressed() {
     if (lose && (moveFrames === 0)) {
         alert("You lose! Score: " + score);
         reset();
-    } else {
-
-        refreshTiles();
-
-        let rows = [];
-        if (keyCode === 69) { // E (right-up)
-            rows = [[10, 11, 12],
-                  [ 9,  2,  3, 13],
-                [ 8,  1,  0,  4, 14],
-                  [ 7,  6,  5, 15],
-                    [18, 17, 16]];
-        } else if (keyCode === 87) { // W (up)
-            rows = [[12, 13, 14],
-                  [11,  3,  4, 15],
-                [10,  2,  0,  5, 16],
-                  [ 9,  1,  6, 17],
-                    [ 8,  7, 18]];
-        } else if (keyCode === 81) { // Q (left-up)
-            rows = [[14, 15, 16],
-                  [13,  4,  5, 17],
-                [12,  3,  0,  6, 18],
-                  [11,  2,  1,  7],
-                    [10,  9,  8]];
-        } else if (keyCode === 65) { // A (left-down)
-            rows = [[16, 17, 18],
-                  [15,  5,  6,  7],
-                [14,  4,  0,  1,  8],
-                  [13,  3,  2,  9],
-                    [12, 11, 10]];
-        } else if (keyCode === 83) { // S (down)
-            rows = [[18,  7,  8],
-                  [17,  6,  1,  9],
-                [16,  5,  0,  2, 10],
-                  [15,  4,  3, 11],
-                    [14, 13, 12]];
-        } else if (keyCode === 68) { // D (right-down)
-            rows = [[ 8,  9, 10],
-                  [ 7,  1,  2, 11],
-                [18,  6,  0,  3, 12],
-                  [17,  5,  4, 13],
-                    [16, 15, 14]];
-        } else {
-            return;
-        }
-
-        rows.forEach(function (row) {
-            slide(row);
-            combine(row);
-            slide(row);
-        });
-
-        if (unmoved()) {
-            return;
-        }
-
-        spawn(2);
-
-        lose = full() && stuck();
-
-        moveFrames = 15;
-
+        return;
     }
+
+    if (keyCode === 69) { // E (right-up)
+        move('ru');
+    } else if (keyCode === 87) { // W (up)
+        move('mu');
+    } else if (keyCode === 81) { // Q (left-up)
+        move('lu');
+    } else if (keyCode === 65) { // A (left-down)
+        move('ld');
+    } else if (keyCode === 83) { // S (down)
+        move('md');
+    } else if (keyCode === 68) { // D (right-down)
+        move('rd');
+    }
+}
+
+
+function touchStarted() {
+    touchStart.x = mouseX;
+    touchStart.y = mouseY;
+    touchStart.t = frameCount;
+
+    // Prevent the default touch action.
+    return false;
+}
+
+
+function touchEnded() {
+    let delta = {
+        x: mouseX - touchStart.x,
+        y: mouseY - touchStart.y,
+        t: frameCount - touchStart.t};
+
+    let magnitude = delta.x**2 + delta.y**2;
+    if (magnitude < distanceThreshold**2) { // Not far enough.
+        return false;
+    }
+    if (magnitude < (delta.t * speedThreshold)**2) { // Too slow.
+        return false;
+    }
+
+    if (delta.y < 0) { // Upward swipe.
+        if (delta.x * tan60 >= - delta.y) {
+            move('ru');
+        } else if (delta.x * tan60 > delta.y) {
+            move('mu');
+        } else {
+            move('lu');
+        }
+    } else if (delta.y > 0) { // Downward swipe.
+        if (delta.x * tan60 > delta.y) {
+            move('rd');
+        } else if (delta.x * tan60 >= - delta.y) {
+            move('md');
+        } else {
+            move('ld');
+        }
+    }
+
+    // Prevent the default touch action.
+    return false;
+}
+
+
+function move(direction) {
+
+    refreshTiles();
+
+    moves[direction].forEach(function (row) {
+        slide(row);
+        combine(row);
+        slide(row);
+    });
+
+    if (unmoved()) {
+        return;
+    }
+
+    spawn(moveSpawn);
+    lose = full() && stuck();
+    moveFrames = 15;
 }
 
 
