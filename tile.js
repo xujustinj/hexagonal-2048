@@ -123,22 +123,28 @@ Tile.prototype.paintPlain = function () {
 }
 
 Tile.prototype.text = function(n, x, y) {
+
+    x *= stretch;
+    y *= stretch;
+
     // 1. Determine the font size, dependent on the number to be displayed.
+    let fontSize;
     if (n === 0) {       // Display nothing.
         return;
     } else if (n <  7) { // Display 1 or 2 digits.
-        textSize(45);
+        fontSize = 40 * stretch;
     } else if (n < 10) { // Display 3 digits.
-        textSize(40);
+        fontSize = 36 * stretch;
     } else if (n < 14) { // Display 4 digits.
-        textSize(35);
+        fontSize = 32 * stretch;
     } else if (n < 17) { // Display 5 digits.
-        textSize(30);
+        fontSize = 28 * stretch;
     } else if (n < 20) { // Display 6 digits.
-        textSize(25);
+        fontSize = 24 * stretch;
     } else {                      // Display 7 digits.
-        textSize(20);
+        fontSize = 20 * stretch;
     }
+    textSize(fontSize);
 
     // 2. Determine the text colour.
     if (n > 2) {
@@ -148,5 +154,6 @@ Tile.prototype.text = function(n, x, y) {
     }
 
     // 3. Paint the text.
-    text(1 << n, x, y);
+    textAlign(CENTER, CENTER);
+    text(1 << n, x, y + fontSize / 8);
 }

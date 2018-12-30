@@ -1,16 +1,7 @@
-function preload() {
-    // font = 'Calibri';
-    font = 'Clear Sans';
-    // font = loadFont('fonts/clearsans.bold.ttf');
-}
-
-
 function setup() {
 
     // 1. Create and centre the canvas.
-    canvas = createCanvas(size, size);
-    canvas.position(windowWidth / 2 - centre, windowHeight / 2 - centre);
-    frameRate(fps);
+    canvas = createCanvas(600, 600);
 
     // 2. Define the colour scheme and style.
     textAlign(CENTER, CENTER);
@@ -46,6 +37,20 @@ function setup() {
     // 3. Reset the game internal variables.
     reset();
 
+    // 4. Enable painting.
+    autoSize();
+    frameRate(fps);
+
+}
+
+
+function autoSize() {
+    size    = Math.floor(proportion * Math.min(windowWidth, windowHeight));
+    centre  = size / 2;
+    stretch = size / 600;
+    resizeCanvas(size, size);
+    canvas.position((windowWidth - width) / 2, (windowHeight - height) / 2);
+    redraw();
 }
 
 
@@ -122,8 +127,9 @@ function spawn(n) {
 
 function draw() {
 
-    // 1. Repaint the canvas.
+    // 1. Repaint the canvas and stretch it to fill the desired amount of window.
     background(bgColour);
+    translate(centre, centre);
 
     if (moveFrames > 5) {
         let t = 1 - (moveFrames - 5) / 10;
@@ -165,9 +171,9 @@ function refreshTiles() {
 function drawScore() {
     push();
     fill(lightTextColour);
-    textSize(32);
+    textSize(30 * stretch);
     textAlign(RIGHT, BOTTOM);
-    text("Score: " + score, width - 8, height - 4);
+    text("Score: " + score, centre * 73 / 75, centre * 74 / 75);
     pop();
 }
 
@@ -328,6 +334,6 @@ function retarget(from, to) {
 
 function windowResized() {
     if (ready) {
-        canvas.position((windowWidth - width) / 2, (windowHeight - height) / 2);
+        autoSize();
     }
 }

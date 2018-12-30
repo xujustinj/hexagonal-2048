@@ -6,6 +6,10 @@ function paintRegularHexagon (x, y, s, colour) {
     //   centre and its vertices.
     // The hexagon is filled with the consumed colour.
 
+    x *= stretch;
+    y *= stretch;
+    s *= stretch;
+
     fill(colour);
 
     const h = s * sin60;
