@@ -1,6 +1,7 @@
 function preload() {
     // font = 'Calibri';
-    font = loadFont("fonts/clearsans.bold.ttf");
+    font = 'Clear Sans';
+    // font = loadFont('fonts/clearsans.bold.ttf');
 }
 
 
