@@ -1,4 +1,43 @@
+[//]: # (permalink: /index.html)
+
 # Hexagonal 2048
----
-permalink: /index.html
----
+
+Yet another hexagonal variant of [Gabriele Cirulli's *2048*](https://play2048.co/). This project was started in summer 2017, inspired by a love for the original and an introductory course to using [*p5.js*](https://p5js.org/) for game design, and has become a project for learning the secrets of JavaScript and practising good design. Development continues on *Hexagonal 2048*, including eventual plans to create an AI for it.
+
+## Gameplay
+
+Tiles slide in the direction the player chooses, and identical tiles combine by summing their values. New tiles spawn randomly, so the player must plan strategically to avoid losing by filling up the board and running out of moves.
+
+The original game is won upon constructing the $2048$ tile, but with the added degrees of freedom in *Hexagonal 2048*, getting there is barely a challenge. It has not yet been decided which tile presents the equivalent challenge in *Hexagonal 2048*, so there is presently no win condition.
+
+## Controls
+
+Swiping and click-dragging work on all devices. Alternatively, use the following keyboard commands to move in the respective directions:
+
+        W
+    Q       E
+
+    A       D
+        S
+
+By using *p5.js*, the entire game exists within a canvas for the easiest image capture. Simply right click the canvas and **Copy Image** or **Save Image** to capture the board.
+
+## Credit
+
+The colour scheme, scoring algorithm, and gameplay are all modelled after [Gabriele Cirulli's *2048*](https://play2048.co/).
+
+By no means is this a novel variant of *2048*, nor does it carry a unique name. This was developed independently of similar games (some better, some worse) which may be easily found by Googling ["Hexagonal 2048"](https://www.google.com/search?q=hexagonal%202048).
+
+## Screens
+
+### Colour Scheme
+
+![The colour scheme for Hexagonal 2048.](img/Colour%20Scheme.png "Colour Scheme")
+
+### 2048 Achieved
+
+![A board with a newly merged 2048 tile.](img/2048%20Achieved.png "2048 Achieved")
+
+### Game Over
+
+![Game over: there are no moves left for the player.](img/Game%20Over.png "Game Over")

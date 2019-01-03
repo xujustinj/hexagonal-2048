@@ -141,7 +141,6 @@ Tile.prototype.text = function(n, x, y) {
     } else {                      // Display 7 digits.
         fontSize = 20;
     }
-    textSize(fontSize);
 
     // 2. Apply the appropriate stretches.
     x *= stretch;
@@ -157,5 +156,6 @@ Tile.prototype.text = function(n, x, y) {
 
     // 3. Paint the text.
     textAlign(CENTER, CENTER);
+    textSize(fontSize);
     text(1 << n, x, y);
 }
