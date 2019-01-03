@@ -4,11 +4,13 @@
 
 Yet another hexagonal variant of [Gabriele Cirulli's *2048*](https://play2048.co/). This project was started in summer 2017, inspired by a love for the original and an introductory course to using [*p5.js*](https://p5js.org/) for game design, and has become a project for learning the secrets of JavaScript and practising good design. Development continues on *Hexagonal 2048*, including eventual plans to create an AI for it.
 
+*Hexagonal 2048* can be played [here](https://xujustinj.github.io/Hexagonal-2048/).
+
 ## Gameplay
 
 Tiles slide in the direction the player chooses, and identical tiles combine by summing their values. New tiles spawn randomly, so the player must plan strategically to avoid losing by filling up the board and running out of moves.
 
-The original game is won upon constructing the $2048$ tile, but with the added degrees of freedom in *Hexagonal 2048*, getting there is barely a challenge. It has not yet been decided which tile presents the equivalent challenge in *Hexagonal 2048*, so there is presently no win condition.
+The original game is won upon constructing the **2048** tile, but with the added degrees of freedom in *Hexagonal 2048*, getting there is barely a challenge. It has not yet been decided which tile presents the equivalent challenge in *Hexagonal 2048*, so there is presently no win condition.
 
 ## Controls
 
@@ -32,12 +34,12 @@ By no means is this a novel variant of *2048*, nor does it carry a unique name. 
 
 ### Colour Scheme
 
-![The colour scheme for Hexagonal 2048.](img/Colour%20Scheme.png "Colour Scheme")
+![The colour scheme for Hexagonal 2048.](img/Colour%20Scheme.png "The colour scheme for Hexagonal 2048.")
 
 ### 2048 Achieved
 
-![A board with a newly merged 2048 tile.](img/2048%20Achieved.png "2048 Achieved")
+![A board with a newly merged 2048 tile.](img/2048%20Achieved.png "A board with a newly merged 2048 tile.")
 
 ### Game Over
 
-![Game over: there are no moves left for the player.](img/Game%20Over.png "Game Over")
+![Game over: there are no moves left for the player.](img/Game%20Over.png "Game over: there are no moves left for the player.")
