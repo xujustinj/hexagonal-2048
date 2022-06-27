@@ -117,43 +117,9 @@ function spawn(n) {
 }
 
 function draw() {
-  // 1. Repaint the canvas and stretch it to fill the desired amount of window.
   background(bgColour);
-  translate(centre, centre);
 
-  if (moveFrames > 5) {
-    let t = 1 - (moveFrames - 5) / 10;
-    tiles.forEach(function (tile) {
-      tile.paintBlank();
-    });
-    tiles.forEach(function (tile) {
-      tile.paintSpawn(t);
-    });
-    tiles.forEach(function (tile) {
-      tile.paintSlide(t);
-    });
-
-    moveFrames--;
-  } else if (moveFrames > 0) {
-    let t = 1 + (3 - abs(3 - moveFrames)) / 20;
-    tiles.forEach(function (tile) {
-      tile.paintPlain();
-    });
-    tiles.forEach(function (tile) {
-      tile.paintFlash(t);
-    });
-
-    moveFrames--;
-    if (moveFrames === 0) {
-      refreshTiles();
-    }
-  } else {
-    // (moveFrames === 0)
-    tiles.forEach(function (tile) {
-      tile.paintPlain();
-    });
-    noLoop();
-  }
+  drawBoard();
 
   drawScore();
 }
@@ -162,12 +128,57 @@ function refreshTiles() {
   tiles.forEach((tile) => tile.finishUpdating());
 }
 
+function drawBoard() {
+  push();
+  {
+    translate(centre, centre);
+
+    if (moveFrames > 5) {
+      let t = 1 - (moveFrames - 5) / 10;
+      tiles.forEach(function (tile) {
+        tile.paintBlank();
+      });
+      tiles.forEach(function (tile) {
+        tile.paintSpawn(t);
+      });
+      tiles.forEach(function (tile) {
+        tile.paintSlide(t);
+      });
+
+      moveFrames--;
+    } else if (moveFrames > 0) {
+      let t = 1 + (3 - abs(3 - moveFrames)) / 20;
+      tiles.forEach(function (tile) {
+        tile.paintPlain();
+      });
+      tiles.forEach(function (tile) {
+        tile.paintFlash(t);
+      });
+
+      moveFrames--;
+      if (moveFrames === 0) {
+        refreshTiles();
+      }
+    } else {
+      // (moveFrames === 0)
+      tiles.forEach(function (tile) {
+        tile.paintPlain();
+      });
+      noLoop();
+    }
+  }
+  pop();
+}
+
 function drawScore() {
   push();
-  fill(lightTextColour);
-  textSize(30 * stretch);
-  textAlign(RIGHT, BOTTOM);
-  text("Score: " + score, (centre * 73) / 75, (centre * 74) / 75);
+  {
+    translate(size, size);
+    fill(lightTextColour);
+    textSize(30 * stretch);
+    textAlign(RIGHT, BOTTOM);
+    text(`Score: ${score}`, -8, -4);
+  }
   pop();
 }
 
@@ -182,7 +193,7 @@ function keyPressed() {
   } //   few frames of the move.
 
   if (lose && moveFrames === 0) {
-    alert("You lose! Score: " + score);
+    alert(`You lose! Score: ${score}`);
     reset();
     return;
   }
@@ -313,7 +324,5 @@ function slide(r) {
 }
 
 function windowResized() {
-  if (ready) {
-    autoSize();
-  }
+  autoSize();
 }
