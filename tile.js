@@ -32,11 +32,7 @@ class Tile {
 
     this.value = 0; // The base-2 logarithm of the number displayed on this
     // tile, or 0 when this tile is empty.
-    this.colour = colours[this.value]; // The fill colour of this tile.
-
     this.previousValue = 0; // The previous value of this tile.
-    this.previousColour = colours[this.previousValue]; // The previous fill
-    //   colour of this tile.
 
     // Motion properties.
 
@@ -55,40 +51,27 @@ class Tile {
 
   // Editing methods.
   setValue(n) {
-    // 1. Update the value and colour of the tile.
     this.value = n;
-    this.colour = colours[n];
   }
 
   clear() {
-    // 1. Update the value and colour of the tile.
     this.setValue(0);
   }
 
   spawn(n) {
-    // 1. Update the value and colour of the tile.
     this.setValue(n);
-
-    // 2. Update the value of this.spawning.
     this.spawning = true;
   }
 
   merge() {
-    // 1. Update the value and colour of the tile.
     this.value++;
-    this.colour = colours[this.value];
-
-    // 2. Update the value of this.merging.
     this.merging = true;
-
-    // 3. Update the score.
     score += 1 << this.value;
   }
 
   finishUpdating() {
     this.target = this.id;
     this.previousValue = this.value;
-    this.previousColour = this.colour;
     this.spawning = false;
     this.merging = false;
   }
@@ -102,70 +85,26 @@ class Tile {
     if (this.previousValue != 0) {
       let x = tiles[this.target].x * t + this.x * (1 - t);
       let y = tiles[this.target].y * t + this.y * (1 - t);
-      paintRegularHexagon(x, y, sideLength, this.previousColour);
-      this.text(this.previousValue, x, y);
+      paintRegularHexagon(x, y, sideLength, colours[this.previousValue]);
+      paintTileNumber(this.previousValue, x, y);
     }
   }
 
   paintSpawn(t) {
     if (this.spawning) {
-      paintRegularHexagon(this.x, this.y, sideLength * t, this.colour);
+      paintRegularHexagon(this.x, this.y, sideLength * t, colours[this.value]);
     }
   }
 
   paintFlash(t) {
     if (this.spawning || this.merging) {
-      paintRegularHexagon(this.x, this.y, sideLength * t, this.colour);
-      this.text(this.value, this.x, this.y);
+      paintRegularHexagon(this.x, this.y, sideLength * t, colours[this.value]);
+      paintTileNumber(this.value, this.x, this.y);
     }
   }
 
   paintPlain() {
-    paintRegularHexagon(this.x, this.y, sideLength, this.colour);
-    this.text(this.value, this.x, this.y);
-  }
-
-  text(n, x, y) {
-    // 1. Determine the font size, dependent on the number to be displayed.
-    let fontSize;
-    if (n === 0) {
-      // Display nothing.
-      return;
-    } else if (n < 7) {
-      // Display 1 or 2 digits.
-      fontSize = 40;
-    } else if (n < 10) {
-      // Display 3 digits.
-      fontSize = 36;
-    } else if (n < 14) {
-      // Display 4 digits.
-      fontSize = 32;
-    } else if (n < 17) {
-      // Display 5 digits.
-      fontSize = 28;
-    } else if (n < 20) {
-      // Display 6 digits.
-      fontSize = 24;
-    } else {
-      // Display 7 digits.
-      fontSize = 20;
-    }
-
-    // 2. Apply the appropriate stretches.
-    x *= stretch;
-    y *= stretch;
-    fontSize *= stretch;
-
-    // 3. Determine the text colour.
-    if (n > 2) {
-      fill(lightTextColour);
-    } else {
-      fill(darkTextColour);
-    }
-
-    // 4. Paint the text.
-    textAlign(CENTER, CENTER);
-    textSize(fontSize);
-    text(1 << n, x, y);
+    paintRegularHexagon(this.x, this.y, sideLength, colours[this.value]);
+    paintTileNumber(this.value, this.x, this.y);
   }
 }

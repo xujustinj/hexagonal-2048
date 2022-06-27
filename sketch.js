@@ -289,7 +289,6 @@ function slide(r) {
   let i = 0;
   let j = 0;
   while (j < r.length) {
-    console.log(i, j);
     const targetTile = tiles[r[i]];
     const currentTile = tiles[r[j]];
     if (currentTile.isEmpty() || currentTile.id === targetTile.id) {
