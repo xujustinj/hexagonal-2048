@@ -70,50 +70,16 @@ function reset() {
 }
 
 function spawn(n) {
-  // Recursively creates as many tiles as possible, up to n many, in
-  //   random locations on the board. Each tile has a 80% probability of
-  //   containing 2, and a 20% probability of containing 4. When picking
-  //   a real number x from a uniform distribution over [1,2.25),
-  //   P(floor(x) = 1) = P(1 <= x < 2) = P(x < 2) = 80%, and
-  //   P(floor(x) = 2) = P(2 <= x < 3) = P(2 <= x) = 20%.
-
-  // A. Base case, do nothing.
-  if (n === 0) {
-    return;
-  }
-
-  // B. If there are no empty tiles, do nothing.
-  if (full()) {
-    return;
-  }
-
-  // C. Otherwise, proceed.
-  // 1. Make a copy of the tiles array.
-  let tilesCopy = new Array(tiles.length);
-  for (let i = 0; i < tiles.length; i++) {
-    tilesCopy[i] = { id: i, value: tiles[i].value };
-  }
-
-  // 2. Guess random tiles until an empty tile is found.
-  for (let i = tiles.length - 1; i >= 0; i--) {
-    let j = randInt(0, i + 1); // A random index in [0,i+1).
-
-    // a. If the random tile is empty,
-    if (tilesCopy[j].value === 0) {
-      tiles[tilesCopy[j].id].spawn(randInt(1, 2.25));
-      break;
-
-      // b. If the random tile is nonempty, swap it to the end of the
-      //    array (where it will not be considered again) and repeat.
-    } else {
-      let temp = tilesCopy[j];
-      tilesCopy[j] = tilesCopy[i];
-      tilesCopy[i] = temp;
-    }
-  }
-
-  // 3. Recursive step.
-  spawn(n - 1);
+  // Recursively creates as many tiles as possible, up to n many, in random
+  // locations on the board.
+  // Each tile has a 80% probability of spawning 2, and a 20% probability of
+  // spawning 4. When picking a real number x from a uniform distribution over
+  // [1,2.25), we get P(floor(x) = 1) = 80% and P(floor(x) = 2) = 20%.
+  getEmptyTiles()
+    .map((tile) => [Math.random(), tile])
+    .sort()
+    .slice(0, n)
+    .forEach(([_, tile]) => tile.spawn(randInt(1, 2.25)));
 }
 
 function draw() {

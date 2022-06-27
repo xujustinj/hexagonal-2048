@@ -136,7 +136,7 @@ const moves = {
             [16, 15, 14]]};
 
 function full() { // Whether or not every tile is nonempty.
-    return tiles.every(n => (n.value != 0));
+    return tiles.every(tile => !tile.isEmpty());
 }
 
 function stuck() { // If full(), whether or not no moves are possible.
@@ -145,6 +145,10 @@ function stuck() { // If full(), whether or not no moves are possible.
 
 function unmoved() { // Whether or not the last player input moved any tiles.
     return tiles.every(n => (n.id === n.target));
+}
+
+function getEmptyTiles() {
+  return tiles.filter(tile => tile.isEmpty());
 }
 
 
