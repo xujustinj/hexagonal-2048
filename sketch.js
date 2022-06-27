@@ -269,11 +269,7 @@ function touchEnded() {
 function move(direction) {
   refreshTiles();
 
-  moves[direction].forEach(function (row) {
-    slide(row);
-    combine(row);
-    slide(row);
-  });
+  moves[direction].forEach(slide);
 
   if (unmoved()) {
     return;
@@ -290,41 +286,29 @@ function slide(r) {
   // r is a list of tile indices corresponding to a row parallel to the
   //   direction of the player's move. Earlier values in r correspond to tiles
   //   further along the direction of the move.
-
-  let n = 0;
-  for (let i = 0; i < r.length; i++) {
-    if (tiles[r[i]].value != 0) {
-      retarget(r[i], r[n]);
-      tiles[r[n]].setValue(tiles[r[i]].value);
-      if (i != n) {
-        tiles[r[i]].clear();
-      }
-      n++;
-    }
-  }
-}
-
-function combine(r) {
-  // r is a list of tile indices corresponding to a row parallel to the
-  //   direction of the player's move. Earlier values in r correspond to tiles
-  //   further along the direction of the move.
-
-  for (let i = 1; i < r.length; i++) {
-    if (tiles[r[i]].value != 0) {
-      if (tiles[r[i]].value === tiles[r[i - 1]].value) {
-        retarget(r[i], r[i - 1]);
-        tiles[r[i - 1]].merge();
-        tiles[r[i]].clear();
-        i++;
-      }
-    }
-  }
-}
-
-function retarget(from, to) {
-  for (var i = 0; i < tiles.length; i++) {
-    if (tiles[i].target === from) {
-      tiles[i].target = to;
+  let i = 0;
+  let j = 0;
+  while (j < r.length) {
+    console.log(i, j);
+    const targetTile = tiles[r[i]];
+    const currentTile = tiles[r[j]];
+    if (currentTile.isEmpty() || currentTile.id === targetTile.id) {
+      // do nothing and continue
+      currentTile.target = currentTile.id;
+      j++;
+    } else if (targetTile.isEmpty()) {
+      targetTile.setValue(currentTile.value);
+      currentTile.clear();
+      currentTile.target = targetTile.id;
+      j++;
+    } else if (currentTile.value === targetTile.value) {
+      targetTile.merge();
+      currentTile.clear();
+      currentTile.target = targetTile.id;
+      i++;
+      j++;
+    } else if (currentTile.value !== targetTile.value) {
+      i++;
     }
   }
 }

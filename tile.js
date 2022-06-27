@@ -49,6 +49,10 @@ class Tile {
     //   tile is the result of a merge.
   }
 
+  isEmpty() {
+    return this.value === 0;
+  }
+
   // Editing methods.
   setValue(n) {
     // 1. Update the value and colour of the tile.
