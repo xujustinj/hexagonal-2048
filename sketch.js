@@ -159,13 +159,7 @@ function draw() {
 }
 
 function refreshTiles() {
-  tiles.forEach(function (tile) {
-    tile.target = tile.id;
-    tile.previousValue = tile.value;
-    tile.previousColour = tile.colour;
-    tile.spawning = false;
-    tile.merging = false;
-  });
+  tiles.forEach((tile) => tile.finishUpdating());
 }
 
 function drawScore() {
