@@ -1,32 +1,14 @@
 class Tile {
-  constructor(n) {
-    // n is the tile's arbitrary index in the 1-D array of tiles. The simplest
-    //   way to arrange a linear sequence of tiles into the hexagonal pattern of
-    //   the game board is to contruct a hexagonal spiral.
-    //   x   a   b   c   d   e
-    // y +----------------------
-    // a |          10
-    // b |      11      09
-    // c |  12      02      08
-    // d |      03      01
-    // e |  13      00      07
-    // f |      04      06
-    // g |  14      05      18
-    // h |      15      17
-    // i |          16
-
+  constructor(col, row) {
     // Tiles are painted up to twice. Normally, the tile is painted at its
     //   position shown above. Upon making a move, nonempty tiles slide in the
     //   direction of the move if possible, to some destination position. During
     //   the move, the original position of the tile is painted as empty, while
     //   it is painted at some location along the path of motion.
 
-    this.id = n;
-
-    // Position properties.
-
-    this.x = x[n]; // The x-coordinate of the centre of this tile.
-    this.y = y[n]; // The y-coordinate of the centre-of this tile.
+    // Position properties (centre of tile)
+    this.col = col;
+    this.row = row;
 
     // Display properties.
 
@@ -36,8 +18,7 @@ class Tile {
 
     // Motion properties.
 
-    this.target = 0; // The index of the tile occupying the position that this
-    //   tile is moving to (if it is moving).
+    this.target = this; // The tile that this tile is moving to (if at all).
     this.spawning = false; // Whether or not this tile has been selected as the
     //   location of a random spawn. Affects how the tile
     //   is painted with paintMotion().
@@ -55,56 +36,65 @@ class Tile {
   }
 
   clear() {
-    this.setValue(0);
+    this.value = 0;
+  }
+
+  reset() {
+    this.value = 0;
+    this.previousValue = 0;
+    this.target = this;
+    this.spawning = false;
+    this.merging = false;
   }
 
   spawn(n) {
-    this.setValue(n);
+    this.value = n;
     this.spawning = true;
   }
 
   merge() {
+    this.previousValue = this.value;
     this.value++;
     this.merging = true;
     score += 1 << this.value;
   }
 
   finishUpdating() {
-    this.target = this.id;
     this.previousValue = this.value;
+    this.target = this;
     this.spawning = false;
     this.merging = false;
   }
 
   // Display methods
   paintBlank() {
-    paintRegularHexagon(this.x, this.y, sideLength, colours[0]);
+    painter.paintTileHexagon([this.col, this.row], 0);
   }
 
   paintSlide(t) {
-    if (this.previousValue != 0) {
-      let x = tiles[this.target].x * t + this.x * (1 - t);
-      let y = tiles[this.target].y * t + this.y * (1 - t);
-      paintRegularHexagon(x, y, sideLength, colours[this.previousValue]);
-      paintTileNumber(this.previousValue, x, y);
+    if (this.previousValue !== 0) {
+      const col = this.target.col * t + this.col * (1 - t);
+      const row = this.target.row * t + this.row * (1 - t);
+      painter.paintTileHexagon([col, row], this.previousValue);
+      painter.paintTileNumber([col, row], this.previousValue);
     }
   }
 
   paintSpawn(t) {
     if (this.spawning) {
-      paintRegularHexagon(this.x, this.y, sideLength * t, colours[this.value]);
+      painter.paintTileHexagon([this.col, this.row], this.value, t);
     }
   }
 
   paintFlash(t) {
     if (this.spawning || this.merging) {
-      paintRegularHexagon(this.x, this.y, sideLength * t, colours[this.value]);
-      paintTileNumber(this.value, this.x, this.y);
+      painter.paintTileHexagon([this.col, this.row], this.value, t);
+      painter.paintTileNumber([this.col, this.row], this.value);
     }
   }
 
   paintPlain() {
-    paintRegularHexagon(this.x, this.y, sideLength, colours[this.value]);
-    paintTileNumber(this.value, this.x, this.y);
+    painter.paintTileHexagon([this.col, this.row], this.value);
+    painter.paintTileNumber([this.col, this.row], this.value);
   }
 }

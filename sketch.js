@@ -3,9 +3,6 @@ function setup() {
   canvas = createCanvas(600, 600);
 
   // 2. Define the colour scheme and style.
-  textAlign(CENTER, CENTER);
-  textFont(font);
-  noStroke();
   colorMode(RGB, 255);
   bgColour = color(187, 173, 160);
   colours = [
@@ -45,8 +42,8 @@ function setup() {
 function autoSize() {
   size = Math.floor(proportion * Math.min(windowWidth, windowHeight));
   centre = size / 2;
-  stretch = size / 600;
   resizeCanvas(size, size);
+  painter.setScale(size / 600);
   canvas.position((windowWidth - width) / 2, (windowHeight - height) / 2);
   redraw();
 }
@@ -58,9 +55,7 @@ function reset() {
   score = 0;
 
   // 2. Create the tiles.
-  for (let n = 0; n < tiles.length; n++) {
-    tiles[n] = new Tile(n);
-  }
+  tiles.forEach((tile) => tile.clear());
 
   // 3. Determine the starting tiles.
   spawn(initialSpawn);
@@ -86,7 +81,6 @@ function draw() {
   background(bgColour);
 
   drawBoard();
-
   drawScore();
 }
 
@@ -100,26 +94,16 @@ function drawBoard() {
     translate(centre, centre);
 
     if (moveFrames > 5) {
-      let t = 1 - (moveFrames - 5) / 10;
-      tiles.forEach(function (tile) {
-        tile.paintBlank();
-      });
-      tiles.forEach(function (tile) {
-        tile.paintSpawn(t);
-      });
-      tiles.forEach(function (tile) {
-        tile.paintSlide(t);
-      });
+      const t = 1 - (moveFrames - 5) / 10;
+      tiles.forEach((tile) => tile.paintBlank());
+      tiles.forEach((tile) => tile.paintSpawn(t));
+      tiles.forEach((tile) => tile.paintSlide(t));
 
       moveFrames--;
     } else if (moveFrames > 0) {
-      let t = 1 + (3 - abs(3 - moveFrames)) / 20;
-      tiles.forEach(function (tile) {
-        tile.paintPlain();
-      });
-      tiles.forEach(function (tile) {
-        tile.paintFlash(t);
-      });
+      const t = 1 + (3 - abs(3 - moveFrames)) / 20;
+      tiles.forEach((tile) => tile.paintPlain());
+      tiles.forEach((tile) => tile.paintFlash(t));
 
       moveFrames--;
       if (moveFrames === 0) {
@@ -127,9 +111,7 @@ function drawBoard() {
       }
     } else {
       // (moveFrames === 0)
-      tiles.forEach(function (tile) {
-        tile.paintPlain();
-      });
+      tiles.forEach((tile) => tile.paintPlain());
       noLoop();
     }
   }
@@ -137,15 +119,7 @@ function drawBoard() {
 }
 
 function drawScore() {
-  push();
-  {
-    translate(size, size);
-    fill(lightTextColour);
-    textSize(30 * stretch);
-    textAlign(RIGHT, BOTTOM);
-    text(`Score: ${score}`, -8, -4);
-  }
-  pop();
+  painter.paintScore(score);
 }
 
 function keyPressed() {
@@ -268,19 +242,19 @@ function slide(r) {
   while (j < r.length) {
     const targetTile = tiles[r[i]];
     const currentTile = tiles[r[j]];
-    if (currentTile.isEmpty() || currentTile.id === targetTile.id) {
+    if (currentTile.isEmpty() || currentTile === targetTile) {
       // do nothing and continue
-      currentTile.target = currentTile.id;
+      currentTile.target = currentTile;
       j++;
     } else if (targetTile.isEmpty()) {
       targetTile.setValue(currentTile.value);
       currentTile.clear();
-      currentTile.target = targetTile.id;
+      currentTile.target = targetTile;
       j++;
     } else if (currentTile.value === targetTile.value) {
       targetTile.merge();
       currentTile.clear();
-      currentTile.target = targetTile.id;
+      currentTile.target = targetTile;
       i++;
       j++;
     } else if (currentTile.value !== targetTile.value) {

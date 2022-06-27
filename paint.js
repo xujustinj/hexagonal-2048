@@ -1,46 +1,72 @@
-function paintRegularHexagon(x, y, s, colour) {
-  // Paints a regular hexagon that looks like <=> on the canvas.
-  // The centre of the hexagon is located at (x,y).
-  // s is the side length of the hexagon, which is also distance between its
-  //   centre and its vertices.
-  // The hexagon is filled with the consumed colour.
+class Painter {
+  font = "Clear Sans";
+  sideLength = 60;
+  spacing = 10;
+  fontSizes = { 1: 40, 2: 40, 3: 36, 4: 32, 5: 28, 6: 24, 7: 20 };
+  scoreSize = 30;
+  diameter = 2 * sin60 * this.sideLength + this.spacing;
 
-  x *= stretch;
-  y *= stretch;
-  s *= stretch;
-
-  fill(colour);
-
-  const h = s * sin60;
-  const w = s * cos60;
-
-  beginShape();
-  vertex(x - s, y);
-  vertex(x - w, y - h);
-  vertex(x + w, y - h);
-  vertex(x + s, y);
-  vertex(x + w, y + h);
-  vertex(x - w, y + h);
-  endShape(CLOSE);
-}
-
-function paintTileNumber(value, x, y, colour) {
-  if (value === 0) {
-    return;
+  // The scale factor of the canvas. This is not done using the built in
+  // scale(x,y) function in p5, as doing so results in fuzzy edge artefacts. The
+  // stretch is instead applied to all values before calling p5 paint methods.
+  scale = 1;
+  setScale(s) {
+    this.scale = s;
   }
 
-  const numberAsString = (1 << value).toString();
+  getXY([col, row]) {
+    return [
+      col * sin60 * this.diameter * this.scale,
+      row * this.diameter * this.scale,
+    ];
+  }
 
-  // 1. Determine the font size, dependent on the number to be displayed.
-  textSize(
-    { 1: 40, 2: 40, 3: 36, 4: 32, 5: 28, 6: 24, 7: 20 }[numberAsString.length] *
-      stretch
-  );
+  paintTileHexagon([col, row], value, size = 1) {
+    const [x, y] = this.getXY([col, row]);
 
-  // 2. Determine the text colour.
-  fill(value <= 2 ? darkTextColour : lightTextColour);
+    fill(colours[value]);
+    noStroke();
 
-  // 3. Paint the text.
-  textAlign(CENTER, CENTER);
-  text(numberAsString, x * stretch, y * stretch);
+    const s = this.sideLength * this.scale * size;
+    const h = s * sin60;
+    const w = s * cos60;
+
+    beginShape();
+    vertex(x - s, y);
+    vertex(x - w, y - h);
+    vertex(x + w, y - h);
+    vertex(x + s, y);
+    vertex(x + w, y + h);
+    vertex(x - w, y + h);
+    endShape(CLOSE);
+  }
+
+  paintTileNumber([col, row], value) {
+    if (value === 0) {
+      return;
+    }
+
+    const [x, y] = this.getXY([col, row]);
+
+    const numberAsString = (1 << value).toString();
+
+    textFont(this.font);
+    textSize(this.fontSizes[numberAsString.length]);
+    textAlign(CENTER, CENTER);
+    fill(value <= 2 ? darkTextColour : lightTextColour);
+    text(numberAsString, x, y + 3); // add 3 to y to correct for misalignment
+  }
+
+  paintScore(score) {
+    push();
+    {
+      translate(600 * this.scale, 600 * this.scale);
+      textFont(this.font);
+      textSize(30 * this.scale);
+      textAlign(RIGHT, BOTTOM);
+      fill(lightTextColour);
+      text(`Score: ${score}`, -8 * this.scale, -4 * this.scale);
+    }
+    pop();
+  }
 }
