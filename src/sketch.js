@@ -98,24 +98,18 @@ function keyPressed() {
     return;
   }
 
-  if (keyCode === 69) {
-    // E (right-up)
-    move("ru");
-  } else if (keyCode === 87) {
-    // W (up)
-    move("mu");
-  } else if (keyCode === 81) {
-    // Q (left-up)
-    move("lu");
-  } else if (keyCode === 65) {
-    // A (left-down)
-    move("ld");
-  } else if (keyCode === 83) {
-    // S (down)
-    move("md");
-  } else if (keyCode === 68) {
-    // D (right-down)
-    move("rd");
+  if (keyCode === "E".charCodeAt()) {
+    move(Direction.UP_RIGHT);
+  } else if (keyCode === "W".charCodeAt()) {
+    move(Direction.UP_MIDDLE);
+  } else if (keyCode === "Q".charCodeAt()) {
+    move(Direction.UP_LEFT);
+  } else if (keyCode === "A".charCodeAt()) {
+    move(Direction.DOWN_LEFT);
+  } else if (keyCode === "S".charCodeAt()) {
+    move(Direction.DOWN_MIDDLE);
+  } else if (keyCode === "D".charCodeAt()) {
+    move(Direction.DOWN_RIGHT);
   }
 }
 
@@ -156,20 +150,20 @@ function touchEnded() {
   if (delta.y < 0) {
     // Upward swipe.
     if (delta.x * TAN_60 >= -delta.y) {
-      move("ru");
+      move(Direction.UP_RIGHT);
     } else if (delta.x * TAN_60 > delta.y) {
-      move("mu");
+      move(Direction.UP_MIDDLE);
     } else {
-      move("lu");
+      move(Direction.UP_LEFT);
     }
   } else if (delta.y > 0) {
     // Downward swipe.
     if (delta.x * TAN_60 > delta.y) {
-      move("rd");
+      move(Direction.DOWN_RIGHT);
     } else if (delta.x * TAN_60 >= -delta.y) {
-      move("md");
+      move(Direction.DOWN_MIDDLE);
     } else {
-      move("ld");
+      move(Direction.DOWN_LEFT);
     }
   }
 
