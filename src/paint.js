@@ -1,10 +1,14 @@
 class Painter {
-  font = "Clear Sans";
+  font = null;
   sideLength = 60;
   spacing = 10;
   fontSizes = { 1: 40, 2: 40, 3: 36, 4: 32, 5: 28, 6: 24, 7: 20 };
   scoreSize = 30;
   diameter = 2 * sin60 * this.sideLength + this.spacing;
+
+  constructor(font) {
+    this.font = font;
+  }
 
   // The scale factor of the canvas.
   // This does not use p5's scale(x,y) function, which results in fuzzy edges.
@@ -54,7 +58,7 @@ class Painter {
     textSize(this.fontSizes[numberAsString.length]);
     textAlign(CENTER, CENTER);
     fill(value <= 2 ? darkTextColor : lightTextColor);
-    text(numberAsString, x, y + 3); // add 3 to y to correct for misalignment
+    text(numberAsString, x, y - 7); // correct for misalignment
   }
 
   paintScore(score) {

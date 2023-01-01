@@ -1,3 +1,10 @@
+function preload() {
+  font = loadFont(
+    "https://raw.githubusercontent.com/intel/clear-sans/main/TTF/ClearSans-Bold.ttf"
+  );
+  painter = new Painter(font);
+}
+
 function setup() {
   // 1. Create and centre the canvas.
   canvas = createCanvas(600, 600);

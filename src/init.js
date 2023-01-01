@@ -184,23 +184,23 @@ function getEmptyTiles() {
 }
 
 // Style constants.
-const painter = new Painter();
+let painter;
 
 // color(...) is not accessible outside of the setup() and draw() methods.
 // These global colour variables will be lazily initialized in setup() instead.
 
 // The fill colour of the canvas.
-var bgColor = null;
+let bgColor;
 
 // Array of background colours of hexagonal tiles on the board.
 // tileColors[0] is the colour of the empty tile.
 // For 0 < n <= 20, tileColors[n] is the colour of tiles with the value 2^n.
-var tileColors = null;
+let tileColors;
 
 // The text colour of all tiles other than the 2 and 4 tiles.
-var lightTextColor = null;
+let lightTextColor;
 // The text colour of the 2 and 4 tiles.
-var darkTextColor = null;
+let darkTextColor;
 
 // Internal variables.
 // The number of tiles spawned at the beginning of each game.
