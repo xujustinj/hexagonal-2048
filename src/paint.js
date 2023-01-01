@@ -6,9 +6,9 @@ class Painter {
   scoreSize = 30;
   diameter = 2 * sin60 * this.sideLength + this.spacing;
 
-  // The scale factor of the canvas. This is not done using the built in
-  // scale(x,y) function in p5, as doing so results in fuzzy edge artefacts. The
-  // stretch is instead applied to all values before calling p5 paint methods.
+  // The scale factor of the canvas.
+  // This does not use p5's scale(x,y) function, which results in fuzzy edges.
+  // We instead apply the stretch before calling p5 paint methods.
   scale = 1;
   setScale(s) {
     this.scale = s;
@@ -24,7 +24,7 @@ class Painter {
   paintTileHexagon([col, row], value, size = 1) {
     const [x, y] = this.getXY([col, row]);
 
-    fill(colours[value]);
+    fill(tileColors[value]);
     noStroke();
 
     const s = this.sideLength * this.scale * size;
@@ -53,7 +53,7 @@ class Painter {
     textFont(this.font);
     textSize(this.fontSizes[numberAsString.length]);
     textAlign(CENTER, CENTER);
-    fill(value <= 2 ? darkTextColour : lightTextColour);
+    fill(value <= 2 ? darkTextColor : lightTextColor);
     text(numberAsString, x, y + 3); // add 3 to y to correct for misalignment
   }
 
@@ -64,7 +64,7 @@ class Painter {
       textFont(this.font);
       textSize(30 * this.scale);
       textAlign(RIGHT, BOTTOM);
-      fill(lightTextColour);
+      fill(lightTextColor);
       text(`Score: ${score}`, -8 * this.scale, -4 * this.scale);
     }
     pop();

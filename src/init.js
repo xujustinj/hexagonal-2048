@@ -11,14 +11,19 @@ function randInt(a, b) {
 
 // Canvas constants.
 
-var canvas = {};
+var canvas = null;
 
-const proportion = 7 / 8; // The proportion of the window filled by the canvas.
+// The proportion of the window filled by the canvas.
+const proportion = 7 / 8;
 
-var size = 600; // The side length of the square canvas.
-var centre = size / 2; // (centre, centre) is the centre of the canvas.
+// The side length of the square canvas.
+var size = 600;
 
-const fps = 60; // The frame rate.
+// (centre, centre) is the centre of the canvas.
+var centre = size / 2;
+
+// The frame rate.
+const fps = 60;
 
 // The 19 hexagonal tiles that make up the board.
 /*
@@ -34,8 +39,12 @@ const fps = 60; // The frame rate.
   1.5 |      15      17
   2.0 |          16
 */
-const space = 10; // The width of the gap between adjacent tiles.
-const sideLength = 60; // The default length of the side of each hexagonal tile.
+
+// The width of the gap between adjacent tiles.
+const space = 10;
+
+// The default length of the side of each hexagonal tile.
+const sideLength = 60;
 var tiles = [
   new Tile(0, 0),
   new Tile(1, -0.5),
@@ -59,10 +68,7 @@ var tiles = [
 ];
 
 const adjacent = [
-  // (i,j) is listed in this array iff:
-  // - 0 <= i < j <= 18
-  // - The tiles numbered i and j in the above diagram share an
-  //   edge.
+  // (i,j) is listed in this array iff the corresponding tiles share an edge.
   [0, 1],
   [0, 2],
   [0, 3],
@@ -180,65 +186,48 @@ function getEmptyTiles() {
 // Style constants.
 const painter = new Painter();
 
-// Unfortunately, color(...) is not accessible outside of the setup() and draw()
-//   methods.
-var bgColour = {}; // color(187, 173, 160), the fill colour of the canvas.
-var colours = []; // Contains the 21 (counting duplicates) possible fill
-//   colours of the hexagonal tiles on the board. colours[n]
-//   is the colour of all tiles displaying the value 2^n, or
-//   the colour of the empty tile when n = 0. The greatest
-//   possible tile value achievable on the board is 2^20.
-/*
-   colours = [
-       // From the original game.
-       color(205, 193, 180),  // empty
-       color(238, 228, 218),  //       2
-       color(238, 225, 201),  //       4
-       color(243, 178, 122),  //       8
-       color(246, 150, 100),  //      16
-       color(247, 124,  95),  //      32
-       color(247,  95,  59),  //      64
-       color(237, 208, 115),  //     128
-       color(237, 204,  98),  //     256
-       color(237, 201,  80),  //     512
-       color(237, 197,  63),  //    1024
-       color(237, 194,  46),  //    2048
-       // Based on the screenshot found at
-       // nicosai.wordpress.com/2014/10/31/10-things-i-learned-from-2048/
-       color(239, 103, 108),  //    4096
-       color(237,  77,  88),  //    8192
-       color(226,  67,  57),  //   16384
-       color(113, 180, 213),  //   32768
-       color( 94, 160, 223),  //   65536
-       color(  0, 124, 190),  //  131072
-       // Arbitrarily incrementing by (10,20,-20) hereon.
-       color( 10, 144, 170),  //  262114
-       color( 20, 164, 150),  //  524288
-       color( 30, 184, 130)]; // 1048576
-*/
+// color(...) is not accessible outside of the setup() and draw() methods.
+// These global colour variables will be lazily initialized in setup() instead.
 
-var lightTextColour = {}; // color(249, 246, 242), the text colour of all tiles
-//   other than the 2 and 4 tiles.
-var darkTextColour = {}; // color(119, 110, 101), the text colour of the 2 and
-//   4 tiles.
+// The fill colour of the canvas.
+var bgColor = null;
+
+// Array of background colours of hexagonal tiles on the board.
+// tileColors[0] is the colour of the empty tile.
+// For 0 < n <= 20, tileColors[n] is the colour of tiles with the value 2^n.
+var tileColors = null;
+
+// The text colour of all tiles other than the 2 and 4 tiles.
+var lightTextColor = null;
+// The text colour of the 2 and 4 tiles.
+var darkTextColor = null;
 
 // Internal variables.
-const initialSpawn = 3; // The number of tiles spawned at the beginning of each
-//   game.
-const moveSpawn = 2; // The number of tiles spawned after each move.
+// The number of tiles spawned at the beginning of each game.
+const initialSpawn = 3;
+// The number of tiles spawned after each move.
+const moveSpawn = 2;
 
-var moveFrames = 0; // The number of frames remaining in the tile-sliding
-//   animation following a move.
-var lose = false; // Whether or not the player can move.
-var score = 0; // The player's score.
-var ready = false; // Whether or not the game is ready to accept inputs.
+// The number of frames remaining in the tile-sliding animation.
+var moveFrames = 0;
+
+// Whether or not the player can move.
+var lose = false;
+
+// The player's score.
+var score = 0;
+
+// Whether or not the game is ready to accept inputs.
+var ready = false;
 
 var touchStart = {
   x: 0, // The x-coordinate of the touch.
   y: 0, // The y-coordinate of the touch.
-  t: 0,
-}; // The frame number of the touch.
-const distanceThreshold = 80; // The minimum number of pixels a swipe must
-//   travel in order to register.
-const speedThreshold = 4; // The minimum number of average pixels per frame
-//   a swipe must achieve in order to register.
+  t: 0, // The frame number of the touch.
+};
+
+// The minimum number of pixels a swipe must travel in order to register.
+const distanceThreshold = 80;
+
+// The minimum speed (pixels/frame) a swipe must travel in order to register.
+const speedThreshold = 4;

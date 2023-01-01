@@ -4,32 +4,35 @@ function setup() {
 
   // 2. Define the colour scheme and style.
   colorMode(RGB, 255);
-  bgColour = color(187, 173, 160);
-  colours = [
+  bgColor = color(187, 173, 160);
+  tileColors = [
     color(205, 193, 180), // empty
-    color(238, 228, 218), //       2
-    color(238, 225, 201), //       4
-    color(243, 178, 122), //       8
-    color(246, 150, 100), //      16
-    color(247, 124, 95), //      32
-    color(247, 95, 59), //      64
-    color(237, 208, 115), //     128
-    color(237, 204, 98), //     256
-    color(237, 201, 80), //     512
-    color(237, 197, 63), //    1024
-    color(237, 194, 46), //    2048
-    color(239, 103, 108), //    4096
-    color(237, 77, 88), //    8192
-    color(226, 67, 57), //   16384
-    color(113, 180, 213), //   32768
-    color(94, 160, 223), //   65536
-    color(0, 124, 190), //  131072
-    color(10, 144, 170), //  262114
-    color(20, 164, 150), //  524288
-    color(30, 184, 130),
-  ]; // 1048576
-  lightTextColour = color(249, 246, 242);
-  darkTextColour = color(119, 110, 101);
+    color(238, 228, 218), // 2
+    color(238, 225, 201), // 4
+    color(243, 178, 122), // 8
+    color(246, 150, 100), // 16
+    color(247, 124, 95), // 32
+    color(247, 95, 59), // 64
+    color(237, 208, 115), // 128
+    color(237, 204, 98), // 256
+    color(237, 201, 80), // 512
+    color(237, 197, 63), // 1024
+    color(237, 194, 46), // 2048
+    // Based on the screenshot found at
+    // nicosai.wordpress.com/2014/10/31/10-things-i-learned-from-2048/
+    color(239, 103, 108), // 4096
+    color(237, 77, 88), // 8192
+    color(226, 67, 57), // 16384
+    color(113, 180, 213), // 32768
+    color(94, 160, 223), // 65536
+    color(0, 124, 190), // 131072
+    // Arbitrarily incrementing by (10,20,-20) hereon.
+    color(10, 144, 170), // 262114
+    color(20, 164, 150), // 524288
+    color(30, 184, 130), // 1048576
+  ];
+  lightTextColor = color(249, 246, 242);
+  darkTextColor = color(119, 110, 101);
 
   // 3. Reset the game internal variables.
   reset();
@@ -78,7 +81,7 @@ function spawn(n) {
 }
 
 function draw() {
-  background(bgColour);
+  background(bgColor);
 
   drawBoard();
   drawScore();
