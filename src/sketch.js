@@ -1,61 +1,11 @@
 function preload() {
-  font = loadFont(
-    "https://raw.githubusercontent.com/intel/clear-sans/main/TTF/ClearSans-Bold.ttf"
-  );
-  painter = new Painter(font);
+  painter.preload();
 }
 
 function setup() {
-  // 1. Create and centre the canvas.
-  canvas = createCanvas(600, 600);
-
-  // 2. Define the colour scheme and style.
-  colorMode(RGB, 255);
-  bgColor = color(187, 173, 160);
-  tileColors = [
-    color(205, 193, 180), // empty
-    color(238, 228, 218), // 2
-    color(238, 225, 201), // 4
-    color(243, 178, 122), // 8
-    color(246, 150, 100), // 16
-    color(247, 124, 95), // 32
-    color(247, 95, 59), // 64
-    color(237, 208, 115), // 128
-    color(237, 204, 98), // 256
-    color(237, 201, 80), // 512
-    color(237, 197, 63), // 1024
-    color(237, 194, 46), // 2048
-    // Based on the screenshot found at
-    // nicosai.wordpress.com/2014/10/31/10-things-i-learned-from-2048/
-    color(239, 103, 108), // 4096
-    color(237, 77, 88), // 8192
-    color(226, 67, 57), // 16384
-    color(113, 180, 213), // 32768
-    color(94, 160, 223), // 65536
-    color(0, 124, 190), // 131072
-    // Arbitrarily incrementing by (10,20,-20) hereon.
-    color(10, 144, 170), // 262114
-    color(20, 164, 150), // 524288
-    color(30, 184, 130), // 1048576
-  ];
-  lightTextColor = color(249, 246, 242);
-  darkTextColor = color(119, 110, 101);
-
-  // 3. Reset the game internal variables.
   reset();
-
-  // 4. Enable painting.
-  autoSize();
+  painter.setup();
   frameRate(fps);
-}
-
-function autoSize() {
-  size = Math.floor(proportion * Math.min(windowWidth, windowHeight));
-  centre = size / 2;
-  resizeCanvas(size, size);
-  painter.setScale(size / 600);
-  canvas.position((windowWidth - width) / 2, (windowHeight - height) / 2);
-  redraw();
 }
 
 function reset() {
@@ -88,7 +38,7 @@ function spawn(n) {
 }
 
 function draw() {
-  background(bgColor);
+  background(painter.bgColor);
 
   drawBoard();
   drawScore();
@@ -101,7 +51,7 @@ function refreshTiles() {
 function drawBoard() {
   push();
   {
-    translate(centre, centre);
+    translate(painter.centre, painter.centre);
 
     if (moveFrames > 5) {
       const t = 1 - (moveFrames - 5) / 10;
@@ -205,18 +155,18 @@ function touchEnded() {
 
   if (delta.y < 0) {
     // Upward swipe.
-    if (delta.x * tan60 >= -delta.y) {
+    if (delta.x * TAN_60 >= -delta.y) {
       move("ru");
-    } else if (delta.x * tan60 > delta.y) {
+    } else if (delta.x * TAN_60 > delta.y) {
       move("mu");
     } else {
       move("lu");
     }
   } else if (delta.y > 0) {
     // Downward swipe.
-    if (delta.x * tan60 > delta.y) {
+    if (delta.x * TAN_60 > delta.y) {
       move("rd");
-    } else if (delta.x * tan60 >= -delta.y) {
+    } else if (delta.x * TAN_60 >= -delta.y) {
       move("md");
     } else {
       move("ld");
@@ -274,5 +224,5 @@ function slide(r) {
 }
 
 function windowResized() {
-  autoSize();
+  painter.autoSize();
 }

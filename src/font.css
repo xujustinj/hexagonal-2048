@@ -3,7 +3,3 @@
   src: url("https://raw.githubusercontent.com/intel/clear-sans/main/TTF/ClearSans-Bold.ttf");
   font-weight: bold;
 }
-
-canvas {
-  border: 8px solid #808080;
-}

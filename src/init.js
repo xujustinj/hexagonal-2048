@@ -1,26 +1,7 @@
-// Mathematical constants.
-
-const sin60 = Math.sqrt(3) / 2; // sin(PI / 3)
-const cos60 = 1 / 2; // cos(PI / 3)
-const tan60 = Math.sqrt(3); // tan(PI / 3)
-
 function randInt(a, b) {
   // Produces a random integer value in [a,b).
   return floor(a + (b - a) * Math.random());
 }
-
-// Canvas constants.
-
-var canvas = null;
-
-// The proportion of the window filled by the canvas.
-const proportion = 7 / 8;
-
-// The side length of the square canvas.
-var size = 600;
-
-// (centre, centre) is the centre of the canvas.
-var centre = size / 2;
 
 // The frame rate.
 const fps = 60;
@@ -40,11 +21,6 @@ const fps = 60;
   2.0 |          16
 */
 
-// The width of the gap between adjacent tiles.
-const space = 10;
-
-// The default length of the side of each hexagonal tile.
-const sideLength = 60;
 var tiles = [
   new Tile(0, 0),
   new Tile(1, -0.5),
@@ -184,23 +160,7 @@ function getEmptyTiles() {
 }
 
 // Style constants.
-let painter;
-
-// color(...) is not accessible outside of the setup() and draw() methods.
-// These global colour variables will be lazily initialized in setup() instead.
-
-// The fill colour of the canvas.
-let bgColor;
-
-// Array of background colours of hexagonal tiles on the board.
-// tileColors[0] is the colour of the empty tile.
-// For 0 < n <= 20, tileColors[n] is the colour of tiles with the value 2^n.
-let tileColors;
-
-// The text colour of all tiles other than the 2 and 4 tiles.
-let lightTextColor;
-// The text colour of the 2 and 4 tiles.
-let darkTextColor;
+const painter = new Painter();
 
 // Internal variables.
 // The number of tiles spawned at the beginning of each game.
