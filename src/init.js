@@ -8,39 +8,39 @@ const fps = 60;
 
 // The 19 hexagonal tiles that make up the board.
 /*
-     r1  -2  -1   0   1   2
-    y +----------------------
- -2.0 |          10
- -1.5 |      11      09
- -1.0 |  12      02      08
- -0.5 |      03      01
-  0.0 |  13      00      07
-  0.5 |      04      06
-  1.0 |  14      05      18
-  1.5 |      15      17
-  2.0 |          16
+     x  -2  -1   0  +1  +2
+   y +----------------------
+  -4 |          10
+  -3 |      11      09
+  -2 |  12      02      08
+  -1 |      03      01
+   0 |  13      00      07
+  +1 |      04      06
+  +2 |  14      05      18
+  +3 |      15      17
+  +4 |          16
 */
 
 var tiles = [
   new Tile(0, 0),
-  new Tile(1, -0.5),
-  new Tile(0, -1),
-  new Tile(-1, -0.5),
-  new Tile(-1, 0.5),
-  new Tile(0, 1),
-  new Tile(1, 0.5),
-  new Tile(2, 0),
-  new Tile(2, -1),
-  new Tile(1, -1.5),
+  new Tile(1, -1),
   new Tile(0, -2),
-  new Tile(-1, -1.5),
-  new Tile(-2, -1),
-  new Tile(-2, 0),
-  new Tile(-2, 1),
-  new Tile(-1, 1.5),
+  new Tile(-1, -1),
+  new Tile(-1, 1),
   new Tile(0, 2),
-  new Tile(1, 1.5),
-  new Tile(2, 1),
+  new Tile(1, 1),
+  new Tile(2, 0),
+  new Tile(2, -2),
+  new Tile(1, -3),
+  new Tile(0, -4),
+  new Tile(-1, -3),
+  new Tile(-2, -2),
+  new Tile(-2, 0),
+  new Tile(-2, 2),
+  new Tile(-1, 3),
+  new Tile(0, 4),
+  new Tile(1, 3),
+  new Tile(2, 2),
 ];
 
 const adjacent = [

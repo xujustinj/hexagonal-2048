@@ -1,10 +1,10 @@
 class Tile {
   constructor(col, row) {
     // Tiles are painted up to twice. Normally, the tile is painted at its
-    //   position shown above. Upon making a move, nonempty tiles slide in the
-    //   direction of the move if possible, to some destination position. During
-    //   the move, the original position of the tile is painted as empty, while
-    //   it is painted at some location along the path of motion.
+    // position shown above. Upon making a move, nonempty tiles slide in the
+    // direction of the move if possible, to some destination position. During
+    // the move, the original position of the tile is painted as empty, while
+    // it is painted at some location along the path of motion.
 
     // Position properties (centre of tile)
     this.col = col;
@@ -12,18 +12,24 @@ class Tile {
 
     // Display properties.
 
-    this.value = 0; // The base-2 logarithm of the number displayed on this
-    // tile, or 0 when this tile is empty.
-    this.previousValue = 0; // The previous value of this tile.
+    // The base-2 logarithm of the number displayed on this tile.
+    // 0 if the tile is empty.
+    this.value = 0;
+
+    // The previous value of this tile.
+    this.previousValue = 0;
 
     // Motion properties.
 
-    this.target = this; // The tile that this tile is moving to (if at all).
-    this.spawning = false; // Whether or not this tile has been selected as the
-    //   location of a random spawn. Affects how the tile
-    //   is painted with paintMotion().
-    this.merging = false; // Whether or not the value to be displayed on this
-    //   tile is the result of a merge.
+    // The tile that this tile is moving to (if at all).
+    this.target = this;
+
+    // Whether this tile has been selected as the location of a random spawn.
+    // Affects how the tile is painted with paintMotion().
+    this.spawning = false;
+
+    // Whether the value to be displayed on this tile is the result of a merge.
+    this.merging = false;
   }
 
   isEmpty() {

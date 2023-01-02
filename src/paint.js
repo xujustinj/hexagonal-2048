@@ -119,7 +119,7 @@ class Painter {
   getXY([col, row]) {
     return [
       col * SIN_60 * this.diameter * this.scale,
-      row * this.diameter * this.scale,
+      (row / 2) * this.diameter * this.scale,
     ];
   }
 
