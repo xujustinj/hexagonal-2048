@@ -89,8 +89,9 @@ function keyPressed() {
 
   if (moveFrames > 5) {
     // Inputs are locked while the tiles are moving.
-    return; //   For smoothness, inputs unlock for the last
-  } //   few frames of the move.
+    // For smoothness, inputs unlock for the last few frames of the move.
+    return;
+  }
 
   if (lose && moveFrames === 0) {
     alert(`You lose! Score: ${score}`);
@@ -98,18 +99,9 @@ function keyPressed() {
     return;
   }
 
-  if (keyCode === "E".charCodeAt()) {
-    move(Direction.UP_RIGHT);
-  } else if (keyCode === "W".charCodeAt()) {
-    move(Direction.UP_MIDDLE);
-  } else if (keyCode === "Q".charCodeAt()) {
-    move(Direction.UP_LEFT);
-  } else if (keyCode === "A".charCodeAt()) {
-    move(Direction.DOWN_LEFT);
-  } else if (keyCode === "S".charCodeAt()) {
-    move(Direction.DOWN_MIDDLE);
-  } else if (keyCode === "D".charCodeAt()) {
-    move(Direction.DOWN_RIGHT);
+  direction = Direction.fromKeycode(keyCode);
+  if (direction !== null) {
+    move(direction);
   }
 }
 
@@ -147,25 +139,9 @@ function touchEnded() {
     return false;
   }
 
-  if (delta.y < 0) {
-    // Upward swipe.
-    if (delta.x * TAN_60 >= -delta.y) {
-      move(Direction.UP_RIGHT);
-    } else if (delta.x * TAN_60 > delta.y) {
-      move(Direction.UP_MIDDLE);
-    } else {
-      move(Direction.UP_LEFT);
-    }
-  } else if (delta.y > 0) {
-    // Downward swipe.
-    if (delta.x * TAN_60 > delta.y) {
-      move(Direction.DOWN_RIGHT);
-    } else if (delta.x * TAN_60 >= -delta.y) {
-      move(Direction.DOWN_MIDDLE);
-    } else {
-      move(Direction.DOWN_LEFT);
-    }
-  }
+  const heading = Math.atan2(delta.y, delta.x);
+  const direction = Direction.fromHeading(heading);
+  move(direction);
 
   // Prevent the default touch action.
   return false;
@@ -174,6 +150,7 @@ function touchEnded() {
 function move(direction) {
   refreshTiles();
 
+  console.log(`Moving in direction: ${direction}`);
   moves[direction].forEach(slide);
 
   if (unmoved()) {
