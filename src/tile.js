@@ -10,107 +10,148 @@ class Tile {
     this.col = col;
     this.row = row;
 
-    // Display properties.
-
-    // The base-2 logarithm of the number displayed on this tile.
+    // The base-2 logarithm of the number currently displayed on this tile.
     // 0 if the tile is empty.
     this.value = 0;
-
-    // The previous value of this tile.
-    this.previousValue = 0;
-
-    // Motion properties.
-
-    // The tile that this tile is moving to (if at all).
-    this.target = this;
-
-    // Whether this tile has been selected as the location of a random spawn.
-    // Affects how the tile is painted with paintMotion().
-    this.spawning = false;
-
-    // Whether the value to be displayed on this tile is the result of a merge.
-    this.merging = false;
   }
 
   isEmpty() {
     return this.value === 0;
   }
 
-  // Editing methods.
-  setValue(n) {
-    this.value = n;
-  }
-
   clear() {
     this.value = 0;
   }
+}
 
-  moving() {
-    return this.target !== this;
+class TileTransitionType {
+  // There are four different ways that a tile can obtain its current value.
+
+  // 1. There is no value (the tile is empty).
+  static EMPTY = new TileTransitionType("EMPTY");
+
+  // 2. The value slid over from another tile (possibly the same one).
+  static SLIDE = new TileTransitionType("SLIDE");
+
+  // 3. The value spawned here.
+  static SPAWN = new TileTransitionType("SPAWN");
+
+  // 4. The value merged here.
+  static MERGE = new TileTransitionType("MERGE");
+
+  constructor(name) {
+    this.name = `${TileTransitionType.name}.${name}`;
   }
 
-  reset() {
-    this.value = 0;
-    this.previousValue = 0;
-    this.target = this;
-    this.spawning = false;
-    this.merging = false;
+  toString() {
+    return this.name;
+  }
+}
+
+class TileTransition {
+  // Each move in the game causes all tiles to "transition".
+  // A tile transition consists of two parts.
+  //  1. The tile, with its old value, slides to the location of another tile.
+  //  2. A new value appears at the place of the tile.
+  // A TileTransition object represents the transition of a single tile.
+  // It contains enough information to both perform and undo the transition.
+  // This class further contains methods to manage multiple simultaneous
+  // transitions in a way that is consistent with the game mechanics.
+
+  constructor(tile) {
+    // By default, the transition for a tile is to slide in place, a no-op.
+    // TileTransition methods modify transitions in a way that remains
+    // consistent.
+    this.tile = tile;
+    this.target = tile;
+    this.oldValue = tile.value;
+    this.newValue = tile.value;
+    this.type = tile.isEmpty()
+      ? TileTransitionType.EMPTY
+      : TileTransitionType.SLIDE;
   }
 
-  spawn(n) {
-    this.value = n;
-    this.spawning = true;
+  apply() {
+    // Apply this transition.
+    assert(this.tile.value === this.oldValue);
+    this.tile.value = this.newValue;
+  }
+
+  undo() {
+    // Undo this transition.
+    assert(this.tile.value === this.newValue);
+    this.tile.value = this.oldValue;
+  }
+
+  getScore() {
+    if (this.type === TileTransitionType.MERGE) {
+      return exp2(this.newValue);
+    }
+    return 0;
+  }
+
+  isEmpty() {
+    return this.type === TileTransitionType.EMPTY;
+  }
+
+  isMoved() {
+    return this.target !== this.tile;
+  }
+
+  static canSlide(origin, target) {
+    // Whether the origin tile can be slid into the target.
+    return (
+      // Tiles can only be slid once per transition.
+      !origin.isMoved() &&
+      // Tiles cannot be slid into themselves.
+      origin.tile !== target.tile &&
+      // Empty tiles cannot slide.
+      !origin.tile.isEmpty() &&
+      // Target tile must either be empty or the same value.
+      (target.type === TileTransitionType.EMPTY ||
+        (target.type === TileTransitionType.SLIDE &&
+          origin.oldValue === target.newValue))
+    );
+  }
+
+  static slide(origin, target) {
+    // Slides the origin tile into the target.
+    // Requires: canSlide(origin, target)
+    assert(!origin.isMoved());
+    assert(origin.tile !== target.tile);
+    assert(!origin.tile.isEmpty());
+
+    // Slide or merge the origin tile into the target.
+    switch (target.type) {
+      case TileTransitionType.EMPTY:
+        assert(target.newValue === 0);
+        target.newValue = origin.oldValue;
+        target.type = TileTransitionType.SLIDE;
+        break;
+      case TileTransitionType.SLIDE:
+        assert(target.newValue === origin.oldValue);
+        target.newValue += 1;
+        target.type = TileTransitionType.MERGE;
+        break;
+      default:
+        throw new Error(`Cannot slide into a tile with type ${target.type}.`);
+    }
+
+    // The origin tile will become empty.
+    origin.target = target.tile;
+    origin.newValue = 0;
+    origin.type = TileTransitionType.EMPTY;
+  }
+
+  spawn(value) {
+    // Declare that the given value will spawn at this tile.
+    assert(this.type === TileTransitionType.EMPTY);
+    this.newValue = value;
+    this.type = TileTransitionType.SPAWN;
   }
 
   spawnRandom() {
     // Spawning probabilities: 2 - 80%, 4 - 20%.
     this.spawn(Math.random() < 0.8 ? 1 : 2);
-  }
-
-  merge() {
-    // Returns the score gained for performing this merge.
-    this.previousValue = this.value;
-    this.value++;
-    this.merging = true;
-    return 1 << this.value;
-  }
-
-  flush() {
-    this.previousValue = this.value;
-    this.target = this;
-    this.spawning = false;
-    this.merging = false;
-  }
-
-  // Display methods
-  paintBlank() {
-    painter.paintTileHexagon([this.col, this.row], 0);
-  }
-
-  paintSlide(t) {
-    if (this.previousValue !== 0) {
-      const col = this.target.col * t + this.col * (1 - t);
-      const row = this.target.row * t + this.row * (1 - t);
-      painter.paintTileHexagon([col, row], this.previousValue);
-      painter.paintTileNumber([col, row], this.previousValue);
-    }
-  }
-
-  paintSpawn(t) {
-    if (this.spawning) {
-      painter.paintTileHexagon([this.col, this.row], this.value, t);
-    }
-  }
-
-  paintFlash(t) {
-    if (this.spawning || this.merging) {
-      painter.paintTileHexagon([this.col, this.row], this.value, t);
-      painter.paintTileNumber([this.col, this.row], this.value);
-    }
-  }
-
-  paintPlain() {
-    painter.paintTileHexagon([this.col, this.row], this.value);
-    painter.paintTileNumber([this.col, this.row], this.value);
   }
 }

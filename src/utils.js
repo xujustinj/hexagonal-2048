@@ -47,3 +47,13 @@ function differenceRad(rad1, rad2) {
   const diff = Math.abs(rad1 - rad2) % (2 * Math.PI);
   return diff < Math.PI ? diff : 2 * Math.PI - diff;
 }
+
+function assert(condition) {
+  if (!condition) {
+    throw new Error("Assertion failed");
+  }
+}
+
+function exp2(n) {
+  return 1 << n;
+}

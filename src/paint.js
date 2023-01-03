@@ -123,40 +123,49 @@ class Painter {
     ];
   }
 
-  paintTileHexagon([col, row], value, size = 1) {
+  paintTileHexagon([col, row], value, size = 1.0) {
     const [x, y] = this.getXY([col, row]);
 
-    fill(this.tileColors[value]);
-    noStroke();
-
-    const s = this.sideLength * this.scale * size;
+    const s = this.sideLength * size * this.scale;
     const h = s * SIN_60;
     const w = s * COS_60;
 
-    beginShape();
-    vertex(x - s, y);
-    vertex(x - w, y - h);
-    vertex(x + w, y - h);
-    vertex(x + s, y);
-    vertex(x + w, y + h);
-    vertex(x - w, y + h);
-    endShape(CLOSE);
+    push();
+    {
+      translate(x, y);
+      beginShape();
+      fill(this.tileColors[value]);
+      noStroke();
+      vertex(-s, 0);
+      vertex(-w, -h);
+      vertex(w, -h);
+      vertex(s, 0);
+      vertex(w, h);
+      vertex(-w, h);
+      endShape(CLOSE);
+    }
+    pop();
   }
 
-  paintTileNumber([col, row], value) {
+  paintTileNumber([col, row], value, size = 1.0) {
     if (value === 0) {
       return;
     }
 
     const [x, y] = this.getXY([col, row]);
-
     const numberAsString = (1 << value).toString();
 
-    textFont(this.font);
-    textSize(this.fontSizes[numberAsString.length] * this.scale);
-    textAlign(CENTER, CENTER);
-    fill(value <= 2 ? this.darkTextColor : this.lightTextColor);
-    text(numberAsString, x, y - 7 * this.scale); // correct for misalignment
+    push();
+    {
+      translate(x, y);
+      textFont(this.font);
+      textSize(this.fontSizes[numberAsString.length] * size * this.scale);
+      textAlign(CENTER, CENTER);
+      fill(value <= 2 ? this.darkTextColor : this.lightTextColor);
+      // -7 to correct for vertical alignment
+      text(numberAsString, 0, -7 * size * this.scale);
+    }
+    pop();
   }
 
   paintScore(score) {
@@ -170,5 +179,51 @@ class Painter {
       text(`Score: ${score}`, -8 * this.scale, -4 * this.scale);
     }
     pop();
+  }
+
+  paintBlank(tile) {
+    this.paintTileHexagon([tile.col, tile.row], 0);
+  }
+
+  paintTile(tile) {
+    this.paintTileHexagon([tile.col, tile.row], tile.value);
+    this.paintTileNumber([tile.col, tile.row], tile.value);
+  }
+
+  animateSlide(transition, t) {
+    if (transition.oldValue !== 0) {
+      const col = transition.target.col * t + transition.tile.col * (1 - t);
+      const row = transition.target.row * t + transition.tile.row * (1 - t);
+      this.paintTileHexagon([col, row], transition.oldValue);
+      this.paintTileNumber([col, row], transition.oldValue);
+    }
+  }
+
+  animateSpawn(transition, t) {
+    if (transition.type === TileTransitionType.SPAWN) {
+      this.paintTileHexagon(
+        [transition.tile.col, transition.tile.row],
+        transition.newValue,
+        t
+      );
+    }
+  }
+
+  animateMerge(transition, t, strength = 0.2) {
+    assert(0 <= t && t <= 1);
+    if (transition.type === TileTransitionType.MERGE) {
+      const c = 2.0 * Math.abs(t - 0.5);
+      const size = 1.0 + c * strength;
+      this.paintTileHexagon(
+        [transition.tile.col, transition.tile.row],
+        transition.newValue,
+        size
+      );
+      this.paintTileNumber(
+        [transition.tile.col, transition.tile.row],
+        transition.newValue,
+        size
+      );
+    }
   }
 }

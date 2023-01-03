@@ -9,14 +9,13 @@ function setup() {
 }
 
 function reset() {
-  moveFrames = 16;
-  board.reset();
+  transitions = board.reset();
+  moveFrames = 12;
   ready = true;
 }
 
 function draw() {
   background(painter.bgColor);
-
   drawBoard();
   drawScore();
 }
@@ -26,25 +25,28 @@ function drawBoard() {
   {
     translate(painter.centre, painter.centre);
 
-    if (moveFrames > 5) {
-      const t = 1 - (moveFrames - 5) / 10;
-      board.tiles.forEach((tile) => tile.paintBlank());
-      board.tiles.forEach((tile) => tile.paintSpawn(t));
-      board.tiles.forEach((tile) => tile.paintSlide(t));
-
-      moveFrames--;
-    } else if (moveFrames > 0) {
-      const t = 1 + (3 - abs(3 - moveFrames)) / 20;
-      board.tiles.forEach((tile) => tile.paintPlain());
-      board.tiles.forEach((tile) => tile.paintFlash(t));
-
+    if (moveFrames > 0) {
+      const t = 1 - moveFrames / 12;
+      board.tiles.forEach((tile) => painter.paintBlank(tile));
+      transitions.forEach((transition) => painter.animateSpawn(transition, t));
+      transitions.forEach((transition) => painter.animateSlide(transition, t));
       moveFrames--;
       if (moveFrames === 0) {
-        board.flush();
+        transitions.forEach((transition) => transition.apply());
+        transitions.forEach(
+          (transition) => (board.score += transition.getScore())
+        );
+        flashFrames = 8;
       }
+    } else if (flashFrames > 0) {
+      const t = 1 - flashFrames / 8;
+      board.tiles.forEach((tile) => painter.paintTile(tile));
+      transitions.forEach((transition) => painter.animateMerge(transition, t));
+
+      flashFrames--;
     } else {
       // (moveFrames === 0)
-      board.tiles.forEach((tile) => tile.paintPlain());
+      board.tiles.forEach((tile) => painter.paintTile(tile));
       noLoop();
     }
   }
@@ -57,12 +59,6 @@ function drawScore() {
 
 function keyPressed() {
   if (!ready) {
-    return;
-  }
-
-  if (moveFrames > 5) {
-    // Inputs are locked while the tiles are moving.
-    // For smoothness, inputs unlock for the last few frames of the move.
     return;
   }
 
@@ -118,13 +114,23 @@ function move(direction) {
   if (board.isGameOver() && moveFrames === 0) {
     alert(`You lose! Score: ${board.score}`);
     reset();
+    loop();
+    return;
+  }
+
+  if (moveFrames > 0) {
+    // Inputs are locked while the tiles are moving.
+    // For smoothness, inputs unlock for the last few frames of the move.
     return;
   }
 
   console.log(`Moving in direction: ${direction}`);
-  board.move(direction);
-  moveFrames = 15;
-  loop();
+  nextTransitions = board.move(direction);
+  if (nextTransitions !== null) {
+    transitions = nextTransitions;
+    moveFrames = 12;
+    loop();
+  }
 }
 
 function windowResized() {

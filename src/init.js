@@ -6,8 +6,12 @@ const board = new HexBoard();
 // Style constants.
 const painter = new Painter();
 
+// The ongoing move.
+var transitions = null;
+
 // The number of frames remaining in the tile-sliding animation.
 var moveFrames = 0;
+var flashFrames = 0;
 
 // Whether or not the game is ready to accept inputs.
 var ready = false;

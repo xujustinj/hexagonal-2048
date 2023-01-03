@@ -12,10 +12,6 @@ class Board {
     this.score = 0;
   }
 
-  flush() {
-    this.tiles.forEach((tile) => tile.flush());
-  }
-
   isGameOver() {
     // Whether or not the game is over.
     return (
@@ -24,11 +20,6 @@ class Board {
         this.getPairs(direction).every(([a, b]) => a.value !== b.value)
       )
     );
-  }
-
-  moving() {
-    // Whether any tiles are moving.
-    return this.tiles.some((tile) => tile.moving());
   }
 
   getPairs(direction) {
@@ -72,65 +63,68 @@ class Board {
     return this.linesCache[direction];
   }
 
-  reset() {
-    // 1. Reset the score.
-    this.score = 0;
-
-    // 2. Create the tiles.
-    this.tiles.forEach((tile) => tile.clear());
-
-    // 3. Determine the starting tiles.
-    this.spawn(this.initialSpawnCount);
-  }
-
   slide(line) {
     // line is an array of tiles parallel to the direction of the player's move.
     // Earlier indices correspond to tiles further along the direction.
-    let i = line.length - 1;
-    let j = i;
-    while (j >= 0) {
-      const targetTile = line[i];
-      const currentTile = line[j];
-      if (currentTile.isEmpty() || currentTile === targetTile) {
-        // do nothing and continue
-        currentTile.target = currentTile;
-        j--;
-      } else if (targetTile.isEmpty()) {
-        targetTile.setValue(currentTile.value);
-        currentTile.clear();
-        currentTile.target = targetTile;
-        j--;
-      } else if (currentTile.value === targetTile.value) {
-        this.score += targetTile.merge();
-        currentTile.clear();
-        currentTile.target = targetTile;
-        i--;
-        j--;
-      } else if (currentTile.value !== targetTile.value) {
-        i--;
+    const transitions = line.map((tile) => new TileTransition(tile)).reverse();
+
+    let originIdx = 1;
+    let targetIdx = 0;
+    while (originIdx < transitions.length) {
+      // Slide each nonempty tile to the furthest tile that it can slide into.
+
+      if (originIdx === targetIdx) {
+        // Origin and target are the same -- skip.
+        originIdx++;
+        continue;
+      }
+
+      const origin = transitions[originIdx];
+      if (origin.tile.isEmpty()) {
+        // Current tile is empty -- skip.
+        originIdx++;
+        continue;
+      }
+
+      const target = transitions[targetIdx];
+      if (TileTransition.canSlide(origin, target)) {
+        TileTransition.slide(origin, target);
+        originIdx++;
+      } else {
+        // Try again with the next target.
+        targetIdx++;
+        continue;
       }
     }
+
+    return transitions;
   }
 
-  spawn(n) {
+  spawn(transitions, n) {
     // Selects up to n empty tiles and populates them with values.
-    const emptyTiles = this.tiles.filter((tile) => tile.isEmpty());
-    const tilesToSpawn = sample(emptyTiles, n);
-    for (const tile of tilesToSpawn) {
-      tile.spawnRandom();
+    const empty = transitions.filter((transition) => transition.isEmpty());
+    const toSpawn = sample(empty, n);
+    for (const transition of toSpawn) {
+      transition.spawnRandom();
     }
+    return transitions;
   }
 
   move(direction) {
-    this.flush();
-
-    for (const line of this.getLines(direction)) {
-      this.slide(line);
+    transitions = this.getLines(direction)
+      .map((line) => this.slide(line))
+      .flat();
+    if (transitions.some((transition) => transition.isMoved())) {
+      return this.spawn(transitions, this.moveSpawnCount);
     }
+    return null;
+  }
 
-    if (this.moving()) {
-      this.spawn(this.moveSpawnCount);
-    }
+  reset() {
+    this.score = 0;
+    this.tiles.forEach((tile) => tile.clear());
+    const transitions = this.tiles.map((tile) => new TileTransition(tile));
+    return this.spawn(transitions, this.initialSpawnCount);
   }
 }
 
