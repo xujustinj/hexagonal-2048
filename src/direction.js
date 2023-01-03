@@ -1,47 +1,43 @@
 class Direction {
-  static byKeycode = {};
-  static byAngle = {};
-  static all = [];
-
-  static UP_LEFT = new Direction("UP_LEFT", "Q", -150);
-  static UP_MIDDLE = new Direction("UP_MIDDLE", "W", -90);
-  static UP_RIGHT = new Direction("UP_RIGHT", "E", -30);
-  static DOWN_LEFT = new Direction("DOWN_LEFT", "A", 150);
-  static DOWN_MIDDLE = new Direction("DOWN_MIDDLE", "S", 90);
-  static DOWN_RIGHT = new Direction("DOWN_RIGHT", "D", 30);
-
-  constructor(name, key, heading) {
-    this.name = name;
+  constructor(name, key, headingDeg, cls = Direction) {
+    this.name = `${cls.name}.${name}`;
     this.keycode = key.charCodeAt();
-    this.headingRad = heading * (Math.PI / 180);
+    this.headingRad = radians(headingDeg);
 
-    Direction.byKeycode[this.keycode] = this;
-    Direction.all.push(this);
+    cls.byKeycode[this.keycode] = this;
+    cls.all.push(this);
   }
 
   toString() {
-    return `Direction.${this.name}`;
+    return this.name;
   }
+}
 
-  headingDifference(rad) {
-    const diff = Math.abs(this.headingRad - rad);
-    return diff < Math.PI ? diff : 2 * Math.PI - diff;
+class HexDirection extends Direction {
+  static byKeycode = {};
+  static all = [];
+
+  static UP_LEFT = new HexDirection("UP_LEFT", "Q", -150, -1, -1);
+  static UP_MIDDLE = new HexDirection("UP_MIDDLE", "W", -90, 0, -2);
+  static UP_RIGHT = new HexDirection("UP_RIGHT", "E", -30, 1, -1);
+  static DOWN_LEFT = new HexDirection("DOWN_LEFT", "A", 150, -1, 1);
+  static DOWN_MIDDLE = new HexDirection("DOWN_MIDDLE", "S", 90, 0, 2);
+  static DOWN_RIGHT = new HexDirection("DOWN_RIGHT", "D", 30, 1, 1);
+
+  constructor(name, key, headingDeg, colOffset, rowOffset) {
+    super(name, key, headingDeg, HexDirection);
+
+    this.colOffset = colOffset;
+    this.rowOffset = rowOffset;
   }
 
   static fromKeycode(c) {
-    return Direction.byKeycode[c] ?? null;
+    return HexDirection.byKeycode[c] ?? null;
   }
 
   static fromHeading(rad) {
-    var minDirection = undefined;
-    var minDiff = Infinity;
-    for (const direction of Direction.all) {
-      const diff = direction.headingDifference(rad);
-      if (diff < minDiff) {
-        minDirection = direction;
-        minDiff = diff;
-      }
-    }
-    return minDirection;
+    return minBy(HexDirection.all, (direction) =>
+      differenceRad(direction.headingRad, rad)
+    );
   }
 }

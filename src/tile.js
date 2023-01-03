@@ -45,6 +45,10 @@ class Tile {
     this.value = 0;
   }
 
+  moving() {
+    return this.target !== this;
+  }
+
   reset() {
     this.value = 0;
     this.previousValue = 0;
@@ -58,14 +62,20 @@ class Tile {
     this.spawning = true;
   }
 
+  spawnRandom() {
+    // Spawning probabilities: 2 - 80%, 4 - 20%.
+    this.spawn(Math.random() < 0.8 ? 1 : 2);
+  }
+
   merge() {
+    // Returns the score gained for performing this merge.
     this.previousValue = this.value;
     this.value++;
     this.merging = true;
-    score += 1 << this.value;
+    return 1 << this.value;
   }
 
-  finishUpdating() {
+  flush() {
     this.previousValue = this.value;
     this.target = this;
     this.spawning = false;
