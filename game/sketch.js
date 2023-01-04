@@ -11,7 +11,7 @@ function setup() {
 function reset() {
   transitions = board.reset();
   moveFrames = 12;
-  ready = true;
+  controller.canMove = false;
 }
 
 function draw() {
@@ -26,6 +26,7 @@ function drawBoard() {
     translate(painter.centre, painter.centre);
 
     if (moveFrames > 0) {
+      controller.canMove = false;
       const t = 1 - moveFrames / 12;
       board.tiles.forEach((tile) => painter.paintBlank(tile));
       transitions.forEach((transition) => painter.animateSpawn(transition, t));
@@ -39,13 +40,14 @@ function drawBoard() {
         flashFrames = 8;
       }
     } else if (flashFrames > 0) {
+      controller.canMove = true;
       const t = 1 - flashFrames / 8;
       board.tiles.forEach((tile) => painter.paintTile(tile));
       transitions.forEach((transition) => painter.animateMerge(transition, t));
 
       flashFrames--;
     } else {
-      // (moveFrames === 0)
+      controller.canMove = true;
       board.tiles.forEach((tile) => painter.paintTile(tile));
       noLoop();
     }
@@ -58,53 +60,24 @@ function drawScore() {
 }
 
 function keyPressed() {
-  if (!ready) {
-    return;
-  }
-
-  direction = HexDirection.fromKeycode(keyCode);
+  direction = controller.pressKey(keyCode);
   if (direction !== null) {
     move(direction);
   }
 }
 
 function touchStarted() {
-  if (!ready) {
-    return false;
-  }
-
-  touchStart.x = mouseX;
-  touchStart.y = mouseY;
-  touchStart.t = frameCount;
+  controller.startSwipe(mouseX, mouseY, frameCount / fps);
 
   // Prevent the default touch action.
   return false;
 }
 
 function touchEnded() {
-  if (!ready) {
-    return false;
+  direction = controller.endSwipe(mouseX, mouseY, frameCount / fps);
+  if (direction !== null) {
+    move(direction);
   }
-
-  const delta = {
-    x: mouseX - touchStart.x,
-    y: mouseY - touchStart.y,
-    t: frameCount - touchStart.t,
-  };
-
-  let magnitude = delta.x ** 2 + delta.y ** 2;
-  if (magnitude < distanceThreshold ** 2) {
-    // Not far enough.
-    return false;
-  }
-  if (magnitude < (delta.t * speedThreshold) ** 2) {
-    // Too slow.
-    return false;
-  }
-
-  const heading = Math.atan2(delta.y, delta.x);
-  const direction = HexDirection.fromHeading(heading);
-  move(direction);
 
   // Prevent the default touch action.
   return false;
@@ -115,12 +88,6 @@ function move(direction) {
     alert(`You lose! Score: ${board.score}`);
     reset();
     loop();
-    return;
-  }
-
-  if (moveFrames > 0) {
-    // Inputs are locked while the tiles are moving.
-    // For smoothness, inputs unlock for the last few frames of the move.
     return;
   }
 

@@ -145,6 +145,14 @@ class HexBoard extends Board {
   */
 
   constructor() {
+    const directions = [
+      HexDirection.UP_LEFT,
+      HexDirection.UP_MIDDLE,
+      HexDirection.UP_RIGHT,
+      HexDirection.DOWN_LEFT,
+      HexDirection.DOWN_MIDDLE,
+      HexDirection.DOWN_RIGHT,
+    ];
     const tileCoordinates = [
       [-2, -2],
       [-2, 0],
@@ -173,7 +181,7 @@ class HexBoard extends Board {
       tileMap[cr] = new Tile(col, row);
     }
 
-    super(Object.values(tileMap), HexDirection.all, 3, 2);
+    super(Object.values(tileMap), directions, 3, 2);
     this.tileMap = tileMap;
   }
 
