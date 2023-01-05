@@ -1,66 +1,49 @@
 class Board {
-  constructor(tiles, directions, initialSpawnCount, moveSpawnCount) {
-    this.tiles = tiles;
-    this.directions = directions;
+  // A family of line forests, with the same set of tiles as their vertices.
+  // The tiles can slide in the directions of their edges, merging if they
+  // encounter another tile of the same value.
 
-    this.pairsCache = {};
-    this.linesCache = {};
+  constructor(graphs, { initialSpawnCount, moveSpawnCount }) {
+    assert(graphs instanceof Map);
+    assert(graphs.size > 0);
 
+    this.graphs = graphs;
+    let tiles = null;
+    for (const graph of graphs.values()) {
+      assert(graph instanceof LineForest);
+      if (tiles === null) {
+        tiles = graph.vertices;
+      } else {
+        assert(setsEqual(tiles, graph.vertices));
+      }
+    }
+    this.tiles = Array.from(tiles);
+    this.directions = Array.from(graphs.keys());
+
+    // The number of tiles spawned when the game begins.
+    assert(initialSpawnCount >= 0);
     this.initialSpawnCount = initialSpawnCount;
+
+    // The (maximum) number of tiles spawned after the player moves.
+    assert(moveSpawnCount > 0);
     this.moveSpawnCount = moveSpawnCount;
 
     this.score = 0;
   }
 
   isGameOver() {
-    // Whether or not the game is over.
+    // Whether the game is over.
     return (
       this.tiles.every((tile) => !tile.isEmpty()) &&
-      this.directions.every((direction) =>
-        this.getPairs(direction).every(([a, b]) => a.value !== b.value)
-      )
-    );
-  }
-
-  getPairs(direction) {
-    // Returns all pairs [a,b] of tiles where b is the neighbour of a in the
-    // given direction.
-    if (this.pairsCache[direction] === undefined) {
-      this.pairsCache[direction] = this.getPairsImpl(direction);
-    }
-    return this.pairsCache[direction];
-  }
-
-  getPairsImpl(direction) {
-    // "Abstract" method.
-    // Returns all pairs [a,b] of tiles where b is the neighbour of a in the
-    // given direction.
-    return;
-  }
-
-  getLines(direction) {
-    // Returns all lines of tiles [a,b,c,...] that are aligned with the given
-    // direction.
-    if (this.linesCache[direction] === undefined) {
-      const nextTile = new Map();
-      const prevTile = new Map();
-      for (const [tile, neighbour] of this.getPairs(direction)) {
-        nextTile.set(tile, neighbour);
-        prevTile.set(neighbour, tile);
-      }
-      return this.tiles
-        .filter((tile) => !prevTile.has(tile))
-        .map((root) => {
-          const line = [];
-          let tile = root;
-          while (tile !== undefined) {
-            line.push(tile);
-            tile = nextTile.get(tile);
+      Array.from(this.graphs.values()).every((graph) => {
+        for (const [tile, succ] of graph.successors.entries()) {
+          if (tile.value === succ.value) {
+            return false;
           }
-          return line;
-        });
-    }
-    return this.linesCache[direction];
+        }
+        return true;
+      })
+    );
   }
 
   slide(line) {
@@ -111,8 +94,9 @@ class Board {
   }
 
   move(direction) {
-    transitions = this.getLines(direction)
-      .map((line) => this.slide(line))
+    transitions = this.graphs
+      .get(direction)
+      .lines.map((line) => this.slide(line))
       .flat();
     if (transitions.some((transition) => transition.isMoved())) {
       return this.spawn(transitions, this.moveSpawnCount);
@@ -129,7 +113,7 @@ class Board {
 }
 
 class HexBoard extends Board {
-  // The 19 hexagonal tiles that make up the board.
+  // A board of 19 tiles arranged in a hexagon. Adjacent tiles are paired.
   /*
        x  -2  -1   0  +1  +2
      y +----------------------
@@ -144,15 +128,9 @@ class HexBoard extends Board {
     +4 |           *
   */
 
-  constructor() {
-    const directions = [
-      HexDirection.UP_LEFT,
-      HexDirection.UP_MIDDLE,
-      HexDirection.UP_RIGHT,
-      HexDirection.DOWN_LEFT,
-      HexDirection.DOWN_MIDDLE,
-      HexDirection.DOWN_RIGHT,
-    ];
+  constructor(options) {
+    const graphs = new Map();
+
     const tileCoordinates = [
       [-2, -2],
       [-2, 0],
@@ -174,27 +152,27 @@ class HexBoard extends Board {
       [2, 0],
       [2, 2],
     ];
-
-    const tileMap = {};
+    const tiles = {};
     for (const cr of tileCoordinates) {
       const [col, row] = cr;
-      tileMap[cr] = new Tile(col, row);
+      tiles[cr] = new Tile(col, row);
     }
 
-    super(Object.values(tileMap), directions, 3, 2);
-    this.tileMap = tileMap;
-  }
-
-  getPairsImpl(direction) {
-    const pairs = [];
-    for (const tile of this.tiles) {
-      const neighbourCol = tile.col + direction.colOffset;
-      const neighbourRow = tile.row + direction.rowOffset;
-      const neighbour = this.tileMap[[neighbourCol, neighbourRow]];
-      if (neighbour !== undefined) {
-        pairs.push([tile, neighbour]);
+    for (const direction of Object.values(HexDirection)) {
+      const edges = new Map();
+      for (const tile of Object.values(tiles)) {
+        const neighbours = [];
+        const successorCol = tile.col + direction.colOffset;
+        const successorRow = tile.row + direction.rowOffset;
+        const successor = tiles[[successorCol, successorRow]];
+        if (successor !== undefined) {
+          neighbours.push(successor);
+        }
+        edges.set(tile, neighbours);
       }
+      graphs.set(direction, new LineForest(edges));
     }
-    return pairs;
+
+    super(graphs, options);
   }
 }

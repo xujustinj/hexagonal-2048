@@ -62,3 +62,11 @@ function now() {
   // The current time in seconds.
   return new Date().getTime() / 1000;
 }
+
+function setsEqual(a, b) {
+  // Whether the sets are equal.
+  // https://stackoverflow.com/a/31129384
+  assert(a instanceof Set);
+  assert(b instanceof Set);
+  return a.size === b.size && [...a].every((item) => b.has(item));
+}

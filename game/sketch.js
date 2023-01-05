@@ -1,4 +1,7 @@
-const board = new HexBoard();
+const board = new HexBoard({
+  initialSpawnCount: 3,
+  moveSpawnCount: 2,
+});
 const painter = new Painter();
 const controller = new HexController();
 
