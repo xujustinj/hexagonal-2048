@@ -57,3 +57,8 @@ function assert(condition) {
 function exp2(n) {
   return 1 << n;
 }
+
+function now() {
+  // The current time in seconds.
+  return new Date().getTime() / 1000;
+}

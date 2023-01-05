@@ -1,5 +1,5 @@
 class Controller {
-  // The controller converts various inputs into directions
+  // The controller converts various inputs into directions.
 
   constructor(directions, { distanceThreshold, speedThreshold }) {
     // Directions: a list of {direction, keyCode, heading}

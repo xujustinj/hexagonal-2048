@@ -1,62 +1,23 @@
+const board = new HexBoard();
+const painter = new Painter();
+const controller = new HexController();
+
 function preload() {
   painter.preload();
 }
 
 function setup() {
-  reset();
   painter.setup();
-  frameRate(fps);
+  reset();
 }
 
 function reset() {
   transitions = board.reset();
-  moveFrames = 12;
-  controller.canMove = false;
+  makeTransitions(transitions);
 }
 
 function draw() {
-  background(painter.bgColor);
-  drawBoard();
-  drawScore();
-}
-
-function drawBoard() {
-  push();
-  {
-    translate(painter.centre, painter.centre);
-
-    if (moveFrames > 0) {
-      controller.canMove = false;
-      const t = 1 - moveFrames / 12;
-      board.tiles.forEach((tile) => painter.paintBlank(tile));
-      transitions.forEach((transition) => painter.animateSpawn(transition, t));
-      transitions.forEach((transition) => painter.animateSlide(transition, t));
-      moveFrames--;
-      if (moveFrames === 0) {
-        transitions.forEach((transition) => transition.apply());
-        transitions.forEach(
-          (transition) => (board.score += transition.getScore())
-        );
-        flashFrames = 8;
-      }
-    } else if (flashFrames > 0) {
-      controller.canMove = true;
-      const t = 1 - flashFrames / 8;
-      board.tiles.forEach((tile) => painter.paintTile(tile));
-      transitions.forEach((transition) => painter.animateMerge(transition, t));
-
-      flashFrames--;
-    } else {
-      controller.canMove = true;
-      board.tiles.forEach((tile) => painter.paintTile(tile));
-      noLoop();
-    }
-  }
-  pop();
-}
-
-function drawScore() {
-  painter.paintScore(board.score);
+  painter.draw(board);
 }
 
 function keyPressed() {
@@ -67,14 +28,14 @@ function keyPressed() {
 }
 
 function touchStarted() {
-  controller.startSwipe(mouseX, mouseY, frameCount / fps);
+  controller.startSwipe(mouseX, mouseY, now());
 
   // Prevent the default touch action.
   return false;
 }
 
 function touchEnded() {
-  direction = controller.endSwipe(mouseX, mouseY, frameCount / fps);
+  direction = controller.endSwipe(mouseX, mouseY, now());
   if (direction !== null) {
     move(direction);
   }
@@ -84,20 +45,26 @@ function touchEnded() {
 }
 
 function move(direction) {
-  if (board.isGameOver() && moveFrames === 0) {
+  if (board.isGameOver() && painter.transitions === null) {
     alert(`You lose! Score: ${board.score}`);
     reset();
-    loop();
     return;
   }
 
   console.log(`Moving in direction: ${direction}`);
-  nextTransitions = board.move(direction);
-  if (nextTransitions !== null) {
-    transitions = nextTransitions;
-    moveFrames = 12;
-    loop();
+  transitions = board.move(direction);
+  if (transitions !== null) {
+    makeTransitions(transitions);
   }
+}
+
+function makeTransitions(transitions) {
+  controller.canMove = false;
+  painter.transition(transitions, (ts) => {
+    ts.forEach((t) => t.apply());
+    ts.forEach((t) => (board.score += t.getScore()));
+    controller.canMove = true;
+  });
 }
 
 function windowResized() {

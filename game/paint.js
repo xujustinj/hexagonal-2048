@@ -43,10 +43,26 @@ class Painter {
 
   centre = this.size / 2;
 
+  fps = 60;
+
   // The scale factor of the canvas.
   // This does not use p5's scale(x,y) function, which results in fuzzy edges.
   // We instead apply the stretch before calling p5 paint methods.
   scale = 1;
+
+  // The duration (in seconds) of the moving and flashing animations.
+  slideDuration = 0.2;
+  spawnDuration = 0.1;
+  flashDuration = 0.1;
+  preTransitionDuration = Math.max(this.slideDuration, this.spawnDuration);
+  postTransitionDuration = this.flashDuration;
+
+  flashStrength = 0.2;
+
+  transitionTime = null;
+
+  // A callback to invoke the transition at the transition time.
+  onTransition = null;
 
   setSize(size) {
     this.size = size;
@@ -64,6 +80,7 @@ class Painter {
     this.initCanvas();
     this.initColors();
     this.autoSize();
+    frameRate(this.fps);
   }
 
   autoSize() {
@@ -209,21 +226,102 @@ class Painter {
     }
   }
 
-  animateMerge(transition, t, strength = 0.2) {
+  animateFlash(transition, t) {
     assert(0 <= t && t <= 1);
-    if (transition.type === TileTransitionType.MERGE) {
-      const c = 2.0 * Math.abs(t - 0.5);
-      const size = 1.0 + c * strength;
-      this.paintTileHexagon(
-        [transition.tile.col, transition.tile.row],
-        transition.newValue,
-        size
-      );
-      this.paintTileNumber(
-        [transition.tile.col, transition.tile.row],
-        transition.newValue,
-        size
-      );
+    const size =
+      transition.type === TileTransitionType.MERGE
+        ? 1.0 + Math.cos((t * Math.PI) / 2) * this.flashStrength
+        : 1.0;
+    this.paintTileHexagon(
+      [transition.tile.col, transition.tile.row],
+      transition.newValue,
+      size
+    );
+    this.paintTileNumber(
+      [transition.tile.col, transition.tile.row],
+      transition.newValue,
+      size
+    );
+  }
+
+  draw(board) {
+    background(this.bgColor);
+    this.drawBoard(board);
+    this.paintScore(board.score);
+    if (this.transitions === null) {
+      noLoop();
     }
+
+    if (this.transitionTime !== null) {
+      const time = now();
+      if (time >= this.transitionTime && this.onTransition !== null) {
+        // Trigger the transition.
+        this.onTransition(this.transitions);
+        this.onTransition = null;
+      }
+      if (time >= this.transitionTime + this.postTransitionDuration) {
+        // Cleanup the transition.
+        this.transitions = null;
+        this.transitionTime = null;
+      }
+    }
+  }
+
+  transition(transitions, onTransition) {
+    // Sets up the painter to animate a transition.
+    if (this.onTransition !== null) {
+      this.onTransition(this.transitions);
+    }
+
+    this.transitionTime = now() + this.preTransitionDuration;
+    this.transitions = transitions;
+    this.onTransition = onTransition;
+
+    // Unfreeze the animation loop.
+    loop();
+  }
+
+  drawBoard(board) {
+    push();
+    {
+      translate(this.centre, this.centre);
+
+      const time = now();
+      if (this.transitionTime !== null && this.transitions !== null) {
+        board.tiles.forEach((tile) => this.paintBlank(tile));
+
+        if (time < this.transitionTime) {
+          // Pre-Transition
+
+          if (time >= this.transitionTime - this.slideDuration) {
+            const t = 1 - (this.transitionTime - time) / this.slideDuration;
+            this.transitions.forEach((transition) =>
+              this.animateSlide(transition, t)
+            );
+          }
+
+          if (time >= this.transitionTime - this.spawnDuration) {
+            const t = 1 - (this.transitionTime - time) / this.spawnDuration;
+            this.transitions.forEach((transition) =>
+              this.animateSpawn(transition, t)
+            );
+          }
+        } else {
+          // Post-Transition
+
+          board.tiles.forEach((tile) => this.paintTile(tile));
+
+          if (time < this.transitionTime + this.flashDuration) {
+            const t = (time - this.transitionTime) / this.flashDuration;
+            this.transitions.forEach((transition) =>
+              this.animateFlash(transition, t)
+            );
+          }
+        }
+      } else {
+        board.tiles.forEach((tile) => this.paintTile(tile));
+      }
+    }
+    pop();
   }
 }
