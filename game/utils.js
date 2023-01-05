@@ -1,3 +1,8 @@
+// Mathematical constants.
+
+const SIN_60 = Math.sqrt(3) / 2; // sin(PI / 3)
+const COS_60 = 1 / 2; // cos(PI / 3)
+
 function minBy(items, f) {
   // Returns the item with the minimum value of f.
   if (items.length === 0) {

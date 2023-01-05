@@ -1,9 +1,3 @@
-// Mathematical constants.
-
-const SIN_60 = Math.sqrt(3) / 2; // sin(PI / 3)
-const COS_60 = 1 / 2; // cos(PI / 3)
-const TAN_60 = Math.sqrt(3); // tan(PI / 3)
-
 class Painter {
   static FONT_SRC =
     "https://raw.githubusercontent.com/intel/clear-sans/main/TTF/ClearSans-Bold.ttf";
@@ -100,6 +94,11 @@ class Painter {
     );
   }
 
+  tileToScreen({ x, y }) {
+    const u = this.diameter * this.scale;
+    return { x: x * u, y: y * u };
+  }
+
   initColors() {
     colorMode(RGB, 255);
     this.bgColor = color(187, 173, 160);
@@ -133,25 +132,18 @@ class Painter {
     this.darkTextColor = color(119, 110, 101);
   }
 
-  getXY([col, row]) {
-    return [
-      col * SIN_60 * this.diameter * this.scale,
-      (row / 2) * this.diameter * this.scale,
-    ];
-  }
-
-  paintTileHexagon([col, row], value, size = 1.0) {
-    const [x, y] = this.getXY([col, row]);
-
+  paintTileHexagon(coordinates, value, size = 1.0) {
+    const { x, y } = this.tileToScreen(coordinates);
     const s = this.sideLength * size * this.scale;
     const h = s * SIN_60;
     const w = s * COS_60;
+    const tileColor = this.tileColors[value];
 
     push();
     {
       translate(x, y);
       beginShape();
-      fill(this.tileColors[value]);
+      fill(tileColor);
       noStroke();
       vertex(-s, 0);
       vertex(-w, -h);
@@ -164,12 +156,12 @@ class Painter {
     pop();
   }
 
-  paintTileNumber([col, row], value, size = 1.0) {
+  paintTileValue(coordinates, value, size = 1.0) {
     if (value === 0) {
       return;
     }
 
-    const [x, y] = this.getXY([col, row]);
+    const { x, y } = this.tileToScreen(coordinates);
     const numberAsString = (1 << value).toString();
 
     push();
@@ -199,27 +191,33 @@ class Painter {
   }
 
   paintBlank(tile) {
-    this.paintTileHexagon([tile.col, tile.row], 0);
+    this.paintTileHexagon(tile.coordinates, 0);
   }
 
   paintTile(tile) {
-    this.paintTileHexagon([tile.col, tile.row], tile.value);
-    this.paintTileNumber([tile.col, tile.row], tile.value);
+    this.paintTileHexagon(tile.coordinates, tile.value);
+    this.paintTileValue(tile.coordinates, tile.value);
   }
 
   animateSlide(transition, t) {
     if (transition.oldValue !== 0) {
-      const col = transition.target.col * t + transition.tile.col * (1 - t);
-      const row = transition.target.row * t + transition.tile.row * (1 - t);
-      this.paintTileHexagon([col, row], transition.oldValue);
-      this.paintTileNumber([col, row], transition.oldValue);
+      const xy = {
+        x:
+          t * transition.target.coordinates.x +
+          (1 - t) * transition.tile.coordinates.x,
+        y:
+          t * transition.target.coordinates.y +
+          (1 - t) * transition.tile.coordinates.y,
+      };
+      this.paintTileHexagon(xy, transition.oldValue);
+      this.paintTileValue(xy, transition.oldValue);
     }
   }
 
   animateSpawn(transition, t) {
     if (transition.type === TileTransitionType.SPAWN) {
       this.paintTileHexagon(
-        [transition.tile.col, transition.tile.row],
+        transition.tile.coordinates,
         transition.newValue,
         t
       );
@@ -233,15 +231,11 @@ class Painter {
         ? 1.0 + Math.cos((t * Math.PI) / 2) * this.flashStrength
         : 1.0;
     this.paintTileHexagon(
-      [transition.tile.col, transition.tile.row],
+      transition.tile.coordinates,
       transition.newValue,
       size
     );
-    this.paintTileNumber(
-      [transition.tile.col, transition.tile.row],
-      transition.newValue,
-      size
-    );
+    this.paintTileValue(transition.tile.coordinates, transition.newValue, size);
   }
 
   draw(board) {

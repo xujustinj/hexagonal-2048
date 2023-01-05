@@ -1,14 +1,7 @@
 class Tile {
-  constructor(col, row) {
-    // Tiles are painted up to twice. Normally, the tile is painted at its
-    // position shown above. Upon making a move, nonempty tiles slide in the
-    // direction of the move if possible, to some destination position. During
-    // the move, the original position of the tile is painted as empty, while
-    // it is painted at some location along the path of motion.
-
+  constructor(x, y) {
     // Position properties (centre of tile)
-    this.col = col;
-    this.row = row;
+    this.coordinates = { x, y };
 
     // The base-2 logarithm of the number currently displayed on this tile.
     // 0 if the tile is empty.

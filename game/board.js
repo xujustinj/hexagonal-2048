@@ -114,9 +114,10 @@ class Board {
 
 class HexBoard extends Board {
   // A board of 19 tiles arranged in a hexagon. Adjacent tiles are paired.
+  // HexBoards place their tiles using column/row (c,r) coordinates, below:
   /*
-       x  -2  -1   0  +1  +2
-     y +----------------------
+       c  -2  -1   0  +1  +2
+     r +----------------------
     -4 |           *
     -3 |       *       *
     -2 |   *       *       *
@@ -127,44 +128,55 @@ class HexBoard extends Board {
     +3 |       *       *
     +4 |           *
   */
+  //
+  static COORDINATES = [
+    { c: -2, r: -2 },
+    { c: -2, r: 0 },
+    { c: -2, r: 2 },
+    { c: -1, r: -3 },
+    { c: -1, r: -1 },
+    { c: -1, r: 1 },
+    { c: -1, r: 3 },
+    { c: 0, r: -4 },
+    { c: 0, r: -2 },
+    { c: 0, r: 0 },
+    { c: 0, r: 2 },
+    { c: 0, r: 4 },
+    { c: 1, r: -3 },
+    { c: 1, r: -1 },
+    { c: 1, r: 1 },
+    { c: 1, r: 3 },
+    { c: 2, r: -2 },
+    { c: 2, r: 0 },
+    { c: 2, r: 2 },
+  ];
+  static OFFSET = new Map([
+    [HexDirection.UP_LEFT, { dc: -1, dr: -1 }],
+    [HexDirection.UP_MIDDLE, { dc: 0, dr: -2 }],
+    [HexDirection.UP_RIGHT, { dc: 1, dr: -1 }],
+    [HexDirection.DOWN_LEFT, { dc: -1, dr: 1 }],
+    [HexDirection.DOWN_MIDDLE, { dc: 0, dr: 2 }],
+    [HexDirection.DOWN_RIGHT, { dc: 1, dr: 1 }],
+  ]);
 
   constructor(options) {
     const graphs = new Map();
 
-    const tileCoordinates = [
-      [-2, -2],
-      [-2, 0],
-      [-2, 2],
-      [-1, -3],
-      [-1, -1],
-      [-1, 1],
-      [-1, 3],
-      [0, -4],
-      [0, -2],
-      [0, 0],
-      [0, 2],
-      [0, 4],
-      [1, -3],
-      [1, -1],
-      [1, 1],
-      [1, 3],
-      [2, -2],
-      [2, 0],
-      [2, 2],
-    ];
     const tiles = {};
-    for (const cr of tileCoordinates) {
-      const [col, row] = cr;
-      tiles[cr] = new Tile(col, row);
+    for (const { c, r } of HexBoard.COORDINATES) {
+      const tile = new Tile(c * SIN_60, r * COS_60);
+      if (!(c in tiles)) {
+        tiles[c] = {};
+      }
+      tiles[c][r] = tile;
     }
 
-    for (const direction of Object.values(HexDirection)) {
+    for (const [direction, { dc, dr }] of HexBoard.OFFSET.entries()) {
       const edges = new Map();
-      for (const tile of Object.values(tiles)) {
+      for (const { c, r } of HexBoard.COORDINATES) {
+        const tile = tiles[c][r];
         const neighbours = [];
-        const successorCol = tile.col + direction.colOffset;
-        const successorRow = tile.row + direction.rowOffset;
-        const successor = tiles[[successorCol, successorRow]];
+        const successor = (tiles[c + dc] ?? {})[r + dr];
         if (successor !== undefined) {
           neighbours.push(successor);
         }
