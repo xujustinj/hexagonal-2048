@@ -17,14 +17,13 @@ function reset() {
 }
 
 function draw() {
+  control();
   painter.draw(board);
 }
 
 function keyPressed() {
-  direction = controller.pressKey(keyCode);
-  if (direction !== null) {
-    move(direction);
-  }
+  controller.pressKey(keyCode);
+  control();
 }
 
 function touchStarted() {
@@ -35,13 +34,18 @@ function touchStarted() {
 }
 
 function touchEnded() {
-  direction = controller.endSwipe(mouseX, mouseY, now());
-  if (direction !== null) {
-    move(direction);
-  }
+  controller.endSwipe(mouseX, mouseY, now());
+  control();
 
   // Prevent the default touch action.
   return false;
+}
+
+function control() {
+  const direction = controller.getBuffer();
+  if (direction !== null) {
+    move(direction);
+  }
 }
 
 function move(direction) {
@@ -52,7 +56,7 @@ function move(direction) {
   }
 
   console.log(`Moving in direction: ${direction}`);
-  transitions = board.move(direction);
+  const transitions = board.move(direction);
   if (transitions !== null) {
     makeTransitions(transitions);
   }

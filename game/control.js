@@ -14,6 +14,7 @@ class Controller {
 
     // Whether inputs should be processed as moves.
     this.canMove = false;
+    this.bufferedDirection = null;
 
     // The x-coordinate, y-coordinate, and time of the swipe start.
     this.touchStart = null;
@@ -21,11 +22,20 @@ class Controller {
 
   pressKey(keyCode) {
     // Process a keystroke.
-    // If it corresponds to a direction, return the direction.
-    if (this.canMove) {
-      return this.directionsByKeyCode[keyCode] ?? null;
+    const direction = this.directionsByKeyCode[keyCode];
+    if (direction !== undefined) {
+      this.bufferedDirection = direction;
     }
-    return null;
+  }
+
+  getBuffer() {
+    if (this.canMove) {
+      const direction = this.bufferedDirection;
+      this.bufferedDirection = null;
+      return direction;
+    } else {
+      return null;
+    }
   }
 
   startSwipe(x, y, t) {
@@ -36,10 +46,6 @@ class Controller {
   endSwipe(x, y, t) {
     // End the current swipe.
     // If it is far enough and fast enough, return the direction to move in.
-    if (!this.canMove) {
-      this.touchStart = null;
-      return null;
-    }
 
     const delta = {
       x: x - this.touchStart.x,
@@ -49,20 +55,15 @@ class Controller {
     this.touchStart = null;
 
     const magnitude = Math.sqrt(delta.x ** 2 + delta.y ** 2);
-    if (magnitude < this.distanceThreshold) {
-      // Not far enough.
-      return null;
+    if (magnitude >= this.distanceThreshold) {
+      const speed = magnitude / delta.t;
+      if (speed >= this.speedThreshold) {
+        const swipeHeading = Math.atan2(delta.y, delta.x);
+        this.bufferedDirection = minBy(this.directions, ({ heading }) =>
+          differenceRad(heading, swipeHeading)
+        ).direction;
+      }
     }
-    const speed = magnitude / delta.t;
-    if (speed < this.speedThreshold) {
-      // Not fast enough.
-      return null;
-    }
-
-    const swipeHeading = Math.atan2(delta.y, delta.x);
-    return minBy(this.directions, ({ heading }) =>
-      differenceRad(heading, swipeHeading)
-    ).direction;
   }
 }
 
