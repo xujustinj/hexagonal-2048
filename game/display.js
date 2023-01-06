@@ -1,4 +1,4 @@
-class Painter {
+class P5Display {
   static DEFAULT_CANVAS_SIZE = 600;
 
   constructor({
@@ -99,7 +99,7 @@ class Painter {
   }
 
   setup() {
-    this.setupCanvas(Painter.DEFAULT_CANVAS_SIZE);
+    this.setupCanvas(P5Display.DEFAULT_CANVAS_SIZE);
     this.initColors();
     this.autoSize();
     frameRate(this.framesPerSecond);
@@ -129,15 +129,154 @@ class Painter {
 
   initColors() {
     colorMode(RGB, 255);
-    this.backgroundColor = Painter.rgbToColor(this.backgroundRGB);
+    this.backgroundColor = P5Display.rgbToColor(this.backgroundRGB);
     this.tileColors = this.tileRGBs.map(({ background, value }) => ({
-      background: Painter.rgbToColor(background),
-      value: Painter.rgbToColor(value),
+      background: P5Display.rgbToColor(background),
+      value: P5Display.rgbToColor(value),
     }));
-    this.scoreColor = Painter.rgbToColor(this.scoreRGB);
+    this.scoreColor = P5Display.rgbToColor(this.scoreRGB);
   }
 
-  paintTileHexagon(coordinates, value, size = 1.0) {
+  transition(transitions, onTransition) {
+    // Sets up the P5Display to animate a transition.
+    if (this.onTransition !== null) {
+      this.onTransition(this.transitions);
+    }
+
+    this.transitionTime = now() + this.preTransitionDuration;
+    this.transitions = transitions;
+    this.onTransition = onTransition;
+
+    // Unfreeze the animation loop.
+    loop();
+  }
+
+  draw(board) {
+    background(this.backgroundColor);
+    this.drawBoard(board);
+    this.drawScore(board.score);
+    if (this.transitions === null) {
+      noLoop();
+    }
+
+    if (this.transitionTime !== null) {
+      const time = now();
+      if (time >= this.transitionTime && this.onTransition !== null) {
+        // Trigger the transition.
+        this.onTransition(this.transitions);
+        this.onTransition = null;
+      }
+      if (time >= this.transitionTime + this.postTransitionDuration) {
+        // Cleanup the transition.
+        this.transitions = null;
+        this.transitionTime = null;
+      }
+    }
+  }
+
+  drawBoard(board) {
+    push();
+    {
+      translate(0.5 * this.canvasSize, 0.5 * this.canvasSize);
+
+      if (this.transitionTime !== null && this.transitions !== null) {
+        this.drawBlanks(board);
+        const time = now();
+        if (time < this.transitionTime) {
+          // Pre-Transition
+          if (time >= this.transitionTime - this.slideDuration) {
+            const t = 1 - (this.transitionTime - time) / this.slideDuration;
+            this.animateSlide(t);
+          }
+          if (time >= this.transitionTime - this.spawnDuration) {
+            const t = 1 - (this.transitionTime - time) / this.spawnDuration;
+            this.animateSpawn(t);
+          }
+        } else {
+          // Post-Transition
+          this.drawTiles(board);
+          if (time < this.transitionTime + this.flashDuration) {
+            const t = (time - this.transitionTime) / this.flashDuration;
+            this.animateFlash(t);
+          }
+        }
+      } else {
+        this.drawTiles(board);
+      }
+    }
+    pop();
+  }
+
+  drawBlanks(board) {
+    board.tiles.forEach((tile) => {
+      this.drawTileHexagon(tile.coordinates, 0);
+    });
+  }
+
+  drawTiles(board) {
+    board.tiles.forEach((tile) => {
+      this.drawTileHexagon(tile.coordinates, tile.value);
+      this.drawTileValue(tile.coordinates, tile.value);
+    });
+  }
+
+  animateSlide(t) {
+    assert(this.transitions !== null);
+    assert(0 <= t && t <= 1);
+
+    this.transitions
+      .filter((transition) => transition.oldValue !== 0)
+      .forEach((transition) => {
+        const xy = {
+          x:
+            t * transition.target.coordinates.x +
+            (1 - t) * transition.tile.coordinates.x,
+          y:
+            t * transition.target.coordinates.y +
+            (1 - t) * transition.tile.coordinates.y,
+        };
+        this.drawTileHexagon(xy, transition.oldValue);
+        this.drawTileValue(xy, transition.oldValue);
+      });
+  }
+
+  animateSpawn(t) {
+    assert(this.transitions !== null);
+    assert(0 <= t && t <= 1);
+
+    this.transitions
+      .filter((transition) => transition.type === TileTransitionType.SPAWN)
+      .forEach((transition) =>
+        this.drawTileHexagon(
+          transition.tile.coordinates,
+          transition.newValue,
+          t
+        )
+      );
+  }
+
+  animateFlash(t) {
+    assert(this.transitions !== null);
+    assert(0 <= t && t <= 1);
+
+    const flashSize = 1.0 + Math.cos((t * Math.PI) / 2) * this.flashMagnitude;
+    this.transitions.forEach((transition) => {
+      const size =
+        transition.type === TileTransitionType.MERGE ? flashSize : 1.0;
+      this.drawTileHexagon(
+        transition.tile.coordinates,
+        transition.newValue,
+        size
+      );
+      this.drawTileValue(
+        transition.tile.coordinates,
+        transition.newValue,
+        size
+      );
+    });
+  }
+
+  drawTileHexagon(coordinates, value, size = 1.0) {
     const { x, y } = this.tileToScreen(coordinates);
     const s = this.tileSideLength * size * this.canvasSize;
     const h = s * SIN_60;
@@ -161,7 +300,7 @@ class Painter {
     pop();
   }
 
-  paintTileValue(coordinates, value, size = 1.0) {
+  drawTileValue(coordinates, value, size = 1.0) {
     if (value === 0) {
       return;
     }
@@ -189,7 +328,7 @@ class Painter {
     pop();
   }
 
-  paintScore(score) {
+  drawScore(score) {
     push();
     {
       translate(this.canvasSize, this.canvasSize);
@@ -198,135 +337,6 @@ class Painter {
       textAlign(RIGHT, BOTTOM);
       fill(this.scoreColor);
       text(`Score: ${score}`, -0.02 * this.canvasSize, -0.01 * this.canvasSize);
-    }
-    pop();
-  }
-
-  paintBlank(tile) {
-    this.paintTileHexagon(tile.coordinates, 0);
-  }
-
-  paintTile(tile) {
-    this.paintTileHexagon(tile.coordinates, tile.value);
-    this.paintTileValue(tile.coordinates, tile.value);
-  }
-
-  animateSlide(transition, t) {
-    if (transition.oldValue !== 0) {
-      const xy = {
-        x:
-          t * transition.target.coordinates.x +
-          (1 - t) * transition.tile.coordinates.x,
-        y:
-          t * transition.target.coordinates.y +
-          (1 - t) * transition.tile.coordinates.y,
-      };
-      this.paintTileHexagon(xy, transition.oldValue);
-      this.paintTileValue(xy, transition.oldValue);
-    }
-  }
-
-  animateSpawn(transition, t) {
-    if (transition.type === TileTransitionType.SPAWN) {
-      this.paintTileHexagon(
-        transition.tile.coordinates,
-        transition.newValue,
-        t
-      );
-    }
-  }
-
-  animateFlash(transition, t) {
-    assert(0 <= t && t <= 1);
-    const size =
-      transition.type === TileTransitionType.MERGE
-        ? 1.0 + Math.cos((t * Math.PI) / 2) * this.flashMagnitude
-        : 1.0;
-    this.paintTileHexagon(
-      transition.tile.coordinates,
-      transition.newValue,
-      size
-    );
-    this.paintTileValue(transition.tile.coordinates, transition.newValue, size);
-  }
-
-  draw(board) {
-    background(this.backgroundColor);
-    this.drawBoard(board);
-    this.paintScore(board.score);
-    if (this.transitions === null) {
-      noLoop();
-    }
-
-    if (this.transitionTime !== null) {
-      const time = now();
-      if (time >= this.transitionTime && this.onTransition !== null) {
-        // Trigger the transition.
-        this.onTransition(this.transitions);
-        this.onTransition = null;
-      }
-      if (time >= this.transitionTime + this.postTransitionDuration) {
-        // Cleanup the transition.
-        this.transitions = null;
-        this.transitionTime = null;
-      }
-    }
-  }
-
-  transition(transitions, onTransition) {
-    // Sets up the painter to animate a transition.
-    if (this.onTransition !== null) {
-      this.onTransition(this.transitions);
-    }
-
-    this.transitionTime = now() + this.preTransitionDuration;
-    this.transitions = transitions;
-    this.onTransition = onTransition;
-
-    // Unfreeze the animation loop.
-    loop();
-  }
-
-  drawBoard(board) {
-    push();
-    {
-      translate(0.5 * this.canvasSize, 0.5 * this.canvasSize);
-
-      const time = now();
-      if (this.transitionTime !== null && this.transitions !== null) {
-        board.tiles.forEach((tile) => this.paintBlank(tile));
-
-        if (time < this.transitionTime) {
-          // Pre-Transition
-
-          if (time >= this.transitionTime - this.slideDuration) {
-            const t = 1 - (this.transitionTime - time) / this.slideDuration;
-            this.transitions.forEach((transition) =>
-              this.animateSlide(transition, t)
-            );
-          }
-
-          if (time >= this.transitionTime - this.spawnDuration) {
-            const t = 1 - (this.transitionTime - time) / this.spawnDuration;
-            this.transitions.forEach((transition) =>
-              this.animateSpawn(transition, t)
-            );
-          }
-        } else {
-          // Post-Transition
-
-          board.tiles.forEach((tile) => this.paintTile(tile));
-
-          if (time < this.transitionTime + this.flashDuration) {
-            const t = (time - this.transitionTime) / this.flashDuration;
-            this.transitions.forEach((transition) =>
-              this.animateFlash(transition, t)
-            );
-          }
-        }
-      } else {
-        board.tiles.forEach((tile) => this.paintTile(tile));
-      }
     }
     pop();
   }

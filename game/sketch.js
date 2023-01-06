@@ -2,7 +2,7 @@ const board = new HexBoard({
   initialSpawnCount: 3,
   moveSpawnCount: 2,
 });
-const painter = new Painter({
+const display = new P5Display({
   windowProportion: 0.9,
   tileSideLength: 0.1,
   tileSpacing: 0.016,
@@ -136,25 +136,28 @@ const painter = new Painter({
   ],
   scoreRGB: { r: 249, g: 246, b: 242 },
 });
-const controller = new HexController();
+const controller = new HexController({
+  distanceThreshold: 80,
+  speedThreshold: 160,
+});
 
 function preload() {
-  painter.preload();
+  display.preload();
 }
 
 function setup() {
-  painter.setup();
+  display.setup();
   reset();
 }
 
 function reset() {
-  transitions = board.reset();
+  const transitions = board.reset();
   makeTransitions(transitions);
 }
 
 function draw() {
   control();
-  painter.draw(board);
+  display.draw(board);
 }
 
 function keyPressed() {
@@ -185,7 +188,7 @@ function control() {
 }
 
 function move(direction) {
-  if (board.isGameOver() && painter.transitions === null) {
+  if (board.isGameOver() && display.transitions === null) {
     alert(`You lose! Score: ${board.score}`);
     reset();
     return;
@@ -200,7 +203,7 @@ function move(direction) {
 
 function makeTransitions(transitions) {
   controller.canMove = false;
-  painter.transition(transitions, (ts) => {
+  display.transition(transitions, (ts) => {
     ts.forEach((t) => t.apply());
     ts.forEach((t) => (board.score += t.getScore()));
     controller.canMove = true;
@@ -208,5 +211,5 @@ function makeTransitions(transitions) {
 }
 
 function windowResized() {
-  painter.autoSize();
+  display.autoSize();
 }

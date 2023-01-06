@@ -94,7 +94,7 @@ class Board {
   }
 
   move(direction) {
-    transitions = this.graphs
+    const transitions = this.graphs
       .get(direction)
       .lines.map((line) => this.slide(line))
       .flat();

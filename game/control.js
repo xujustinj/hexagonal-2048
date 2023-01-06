@@ -9,8 +9,11 @@ class Controller {
       this.directionsByKeyCode[keyCode] = direction;
     }
 
-    this.distanceThreshold = distanceThreshold ?? 80;
-    this.speedThreshold = speedThreshold ?? 160;
+    assert(distanceThreshold >= 0.0);
+    this.distanceThreshold = distanceThreshold;
+
+    assert(speedThreshold >= 0.0);
+    this.speedThreshold = speedThreshold;
 
     // Whether inputs should be processed as moves.
     this.canMove = false;
