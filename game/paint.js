@@ -1,90 +1,114 @@
 class Painter {
-  static FONT_SRC =
-    "https://raw.githubusercontent.com/intel/clear-sans/main/TTF/ClearSans-Bold.ttf";
-  font = undefined;
+  static DEFAULT_CANVAS_SIZE = 600;
 
-  // The default length of the side of each hexagonal tile.
-  sideLength = 60;
+  constructor({
+    windowProportion,
+    tileSideLength,
+    tileSpacing,
+    framesPerSecond,
+    slideDuration,
+    spawnDuration,
+    flashDuration,
+    flashMagnitude,
+    fontSrc,
+    tileValueSizes,
+    scoreSize,
+    backgroundRGB,
+    tileRGBs,
+    scoreRGB,
+  }) {
+    // SIZING
+    assert(windowProportion > 0.0);
+    this.windowProportion = windowProportion;
 
-  // The width of the gap between adjacent tiles.
-  spacing = 10;
-  fontSizes = { 1: 40, 2: 40, 3: 36, 4: 32, 5: 28, 6: 24, 7: 20 };
-  scoreSize = 30;
-  diameter = 2 * SIN_60 * this.sideLength + this.spacing;
+    assert(tileSideLength > 0.0);
+    this.tileSideLength = tileSideLength;
 
-  // color(...) is not accessible outside of the setup() and draw() methods.
-  // These colour variables will be lazily initialized in initColors() instead.
+    assert(tileSpacing >= 0.0);
+    // The distance between tiles.
+    this.tileDistance = 2 * SIN_60 * tileSideLength + tileSpacing;
 
-  // The fill colour of the canvas.
-  bgColor = undefined;
+    // ANIMATION CONFIG
+    assert(framesPerSecond > 0);
+    this.framesPerSecond = framesPerSecond;
 
-  // Array of background colours of hexagonal tiles on the board.
-  // tileColors[0] is the colour of the empty tile.
-  // For 0 < n <= 20, tileColors[n] is the colour of tiles with the value 2^n.
-  tileColors = undefined;
+    assert(slideDuration >= 0.0);
+    this.slideDuration = slideDuration;
+    assert(spawnDuration >= 0.0);
+    this.spawnDuration = spawnDuration;
+    assert(flashDuration >= 0.0);
+    this.flashDuration = flashDuration;
 
-  // The text colour of all tiles other than the 2 and 4 tiles.
-  lightTextColor = undefined;
-  // The text colour of the 2 and 4 tiles.
-  darkTextColor = undefined;
+    this.preTransitionDuration = Math.max(slideDuration, spawnDuration);
+    this.postTransitionDuration = this.flashDuration;
 
-  // The proportion of the window filled by the canvas.
-  proportion = 0.9;
-  canvas = undefined;
+    assert(flashMagnitude >= 0.0);
+    this.flashMagnitude = flashMagnitude;
 
-  static BASE_SIZE = 600;
-  size = Painter.BASE_SIZE;
+    // FONT
+    // Fonts are loaded lazily in preload().
+    this.fontSrc = fontSrc;
+    this.font = undefined;
+    this.tileValueSizes = tileValueSizes;
+    this.scoreSize = scoreSize;
 
-  centre = this.size / 2;
+    // COLORS
+    // color(...) is not accessible outside of the setup() and draw() methods.
+    // Colour variables will be lazily initialized in initColors() instead.
 
-  fps = 60;
+    this.backgroundRGB = backgroundRGB;
+    this.backgroundColor = undefined;
 
-  // The scale factor of the canvas.
-  // This does not use p5's scale(x,y) function, which results in fuzzy edges.
-  // We instead apply the stretch before calling p5 paint methods.
-  scale = 1;
+    // Array of {background, value} RGBs of tiles.
+    // tileColors[0] has the colours of the empty tile.
+    // For n > 0, tileColors[n] has the colours of tiles with the value 2^n.
+    assert(tileRGBs instanceof Array);
+    this.tileRGBs = tileRGBs;
+    this.tileColors = undefined;
 
-  // The duration (in seconds) of the moving and flashing animations.
-  slideDuration = 0.2;
-  spawnDuration = 0.1;
-  flashDuration = 0.1;
-  preTransitionDuration = Math.max(this.slideDuration, this.spawnDuration);
-  postTransitionDuration = this.flashDuration;
+    this.scoreRGB = scoreRGB;
+    this.scoreColor = undefined;
 
-  flashStrength = 0.2;
+    // =========================================================================
+    // INTERNAL
+    this.canvas = null;
+    this.canvasSize = 0.0;
 
-  transitionTime = null;
+    // TRANSITION
+    this.transitions = null;
+    this.transitionTime = null;
+    // A callback to invoke the transition at the transition time.
+    this.onTransition = null;
+  }
 
-  // A callback to invoke the transition at the transition time.
-  onTransition = null;
-
-  setSize(size) {
-    this.size = size;
-    this.centre = this.size / 2;
-    this.scale = this.size / Painter.BASE_SIZE;
-    resizeCanvas(this.size, this.size);
-    this.centreCanvas();
+  setupCanvas(size) {
+    this.canvasSize = size;
+    if (this.canvas === null) {
+      this.canvas = createCanvas(this.canvasSize, this.canvasSize);
+    } else {
+      resizeCanvas(this.canvasSize, this.canvasSize);
+    }
+    this.canvas.position(
+      (windowWidth - width) / 2,
+      (windowHeight - height) / 2
+    );
   }
 
   preload() {
-    this.font = loadFont(Painter.FONT_SRC);
+    this.font = loadFont(this.fontSrc);
   }
 
   setup() {
-    this.initCanvas();
+    this.setupCanvas(Painter.DEFAULT_CANVAS_SIZE);
     this.initColors();
     this.autoSize();
-    frameRate(this.fps);
+    frameRate(this.framesPerSecond);
   }
 
   autoSize() {
     const windowSize = Math.min(windowWidth, windowHeight);
-    this.setSize(Math.floor(this.proportion * windowSize));
-  }
-
-  initCanvas() {
-    this.canvas = createCanvas(this.size, this.size);
-    this.centreCanvas();
+    const canvasSize = Math.floor(this.windowProportion * windowSize);
+    this.setupCanvas(canvasSize);
   }
 
   centreCanvas() {
@@ -95,55 +119,36 @@ class Painter {
   }
 
   tileToScreen({ x, y }) {
-    const u = this.diameter * this.scale;
+    const u = this.tileDistance * this.canvasSize;
     return { x: x * u, y: y * u };
+  }
+
+  static rgbToColor({ r, g, b }) {
+    return color(r, g, b);
   }
 
   initColors() {
     colorMode(RGB, 255);
-    this.bgColor = color(187, 173, 160);
-    this.tileColors = [
-      color(205, 193, 180), // empty
-      color(238, 228, 218), // 2
-      color(238, 225, 201), // 4
-      color(243, 178, 122), // 8
-      color(246, 150, 100), // 16
-      color(247, 124, 95), // 32
-      color(247, 95, 59), // 64
-      color(237, 208, 115), // 128
-      color(237, 204, 98), // 256
-      color(237, 201, 80), // 512
-      color(237, 197, 63), // 1024
-      color(237, 194, 46), // 2048
-      // Based on the screenshot found at
-      // nicosai.wordpress.com/2014/10/31/10-things-i-learned-from-2048/
-      color(239, 103, 108), // 4096
-      color(237, 77, 88), // 8192
-      color(226, 67, 57), // 16384
-      color(113, 180, 213), // 32768
-      color(94, 160, 223), // 65536
-      color(0, 124, 190), // 131072
-      // Arbitrarily incrementing by (10,20,-20) hereon.
-      color(10, 144, 170), // 262114
-      color(20, 164, 150), // 524288
-      color(30, 184, 130), // 1048576
-    ];
-    this.lightTextColor = color(249, 246, 242);
-    this.darkTextColor = color(119, 110, 101);
+    this.backgroundColor = Painter.rgbToColor(this.backgroundRGB);
+    this.tileColors = this.tileRGBs.map(({ background, value }) => ({
+      background: Painter.rgbToColor(background),
+      value: Painter.rgbToColor(value),
+    }));
+    this.scoreColor = Painter.rgbToColor(this.scoreRGB);
   }
 
   paintTileHexagon(coordinates, value, size = 1.0) {
     const { x, y } = this.tileToScreen(coordinates);
-    const s = this.sideLength * size * this.scale;
+    const s = this.tileSideLength * size * this.canvasSize;
     const h = s * SIN_60;
     const w = s * COS_60;
-    const tileColor = this.tileColors[value];
+    const tileBackgroundColor = this.tileColors[value].background;
 
     push();
     {
       translate(x, y);
       beginShape();
-      fill(tileColor);
+      fill(tileBackgroundColor);
       noStroke();
       vertex(-s, 0);
       vertex(-w, -h);
@@ -163,16 +168,23 @@ class Painter {
 
     const { x, y } = this.tileToScreen(coordinates);
     const numberAsString = (1 << value).toString();
+    const fontSize =
+      this.tileValueSizes[numberAsString.length] * size * this.canvasSize;
+    const tileValueColor = this.tileColors[value].value;
+
+    const horizontalAdjustment =
+      (numberAsString.startsWith("1") ? -0.04 : -0.01) * fontSize;
+    const verticalAdjustment = -0.17 * fontSize;
 
     push();
     {
       translate(x, y);
       textFont(this.font);
-      textSize(this.fontSizes[numberAsString.length] * size * this.scale);
+      textSize(fontSize);
       textAlign(CENTER, CENTER);
-      fill(value <= 2 ? this.darkTextColor : this.lightTextColor);
-      // -7 to correct for vertical alignment
-      text(numberAsString, 0, -7 * size * this.scale);
+      fill(tileValueColor);
+      // small corrections for alignment
+      text(numberAsString, horizontalAdjustment, verticalAdjustment);
     }
     pop();
   }
@@ -180,12 +192,12 @@ class Painter {
   paintScore(score) {
     push();
     {
-      translate(this.size, this.size);
+      translate(this.canvasSize, this.canvasSize);
       textFont(this.font);
-      textSize(this.scoreSize * this.scale);
+      textSize(this.scoreSize * this.canvasSize);
       textAlign(RIGHT, BOTTOM);
-      fill(this.lightTextColor);
-      text(`Score: ${score}`, -8 * this.scale, -4 * this.scale);
+      fill(this.scoreColor);
+      text(`Score: ${score}`, -0.02 * this.canvasSize, -0.01 * this.canvasSize);
     }
     pop();
   }
@@ -228,7 +240,7 @@ class Painter {
     assert(0 <= t && t <= 1);
     const size =
       transition.type === TileTransitionType.MERGE
-        ? 1.0 + Math.cos((t * Math.PI) / 2) * this.flashStrength
+        ? 1.0 + Math.cos((t * Math.PI) / 2) * this.flashMagnitude
         : 1.0;
     this.paintTileHexagon(
       transition.tile.coordinates,
@@ -239,7 +251,7 @@ class Painter {
   }
 
   draw(board) {
-    background(this.bgColor);
+    background(this.backgroundColor);
     this.drawBoard(board);
     this.paintScore(board.score);
     if (this.transitions === null) {
@@ -278,7 +290,7 @@ class Painter {
   drawBoard(board) {
     push();
     {
-      translate(this.centre, this.centre);
+      translate(0.5 * this.canvasSize, 0.5 * this.canvasSize);
 
       const time = now();
       if (this.transitionTime !== null && this.transitions !== null) {
