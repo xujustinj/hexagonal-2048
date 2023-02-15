@@ -1,0 +1,13 @@
+*I made this file to make a pull request*
+
+"Hello, I love this version of 2048. I am currently studying in 
+year 1 of Computer Science, and I'm wondering if I can add some 
+comment or suggestions for the game because I'm currently trying 
+to learn p5 and I'm very good at playing 2048. 
+
+The game looks more legit than other similar versions of hexagonal 
+2048 on the search results XD, though it would probably be a bit 
+less empty if there's some other things as well (like an undo 
+button!). It would also be neat if the game can save the user's 
+progress and highscore if the user leaves the webpage or refresh 
+it." 
