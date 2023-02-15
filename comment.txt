@@ -12,3 +12,6 @@ button!), or even some parts of the documentation in the README
 file. It would also be neat if the game can save the user's 
 progress and highscore if the user leaves the webpage or refresh 
 it." 
+
+Lok To Cheng (Jasper)
+Durham University
