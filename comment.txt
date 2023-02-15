@@ -13,6 +13,9 @@ well (like an undo button!), or even some parts of the documentation in the READ
 It would also be neat if the game can save the user's progress and highscore if the user 
 leaves the webpage or refresh it.
 
+Thanks for reading, leave a reply to the pull request if you would like to have a 
+contributor. Have a nice day!
+
 Yours faithfully, 
 Lok To Cheng (Jasper)
 Durham University" 
