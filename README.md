@@ -4,7 +4,7 @@
 
 Yet another hexagonal variant of [Gabriele Cirulli's _2048_](https://play2048.co/). This project was started in summer 2017, inspired by a love for the original and an introductory course to using [_p5.js_](https://p5js.org/) for game design, and has become a project for learning the secrets of JavaScript and practising good design.
 
-_Hexagonal 2048_ can be played [here](https://xujustinj.github.io/hexagonal-2048/game).
+_Hexagonal 2048_ can be played on [my website](https://justinxu.me/hexagonal-2048).
 
 ## Gameplay
 
