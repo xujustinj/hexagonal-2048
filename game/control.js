@@ -75,7 +75,7 @@ class HexController extends Controller {
     super(
       [
         {
-          direction: HexDirection.UP_LEFT,
+          direction: HexDirection.UP_LEFT, // constructor() from direction.js
           keyCode: "Q".charCodeAt(),
           heading: -5 * (Math.PI / 6),
         },
