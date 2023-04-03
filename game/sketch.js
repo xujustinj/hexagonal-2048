@@ -195,9 +195,21 @@ function move(direction) {
   }
 
   console.log(`Moving in direction: ${direction}`);
+
+  console.log('Current score =', board.score)
+
+  for (let i = 0; i < board.tiles.length; i++) {
+    tile = Object.values(board.tiles[i])
+    tileinfo = tile[0]
+    tilevalue = tile[1] // the 'tilevalue' is the log2 of every tile, if tilevalue is 0, the tile is empty.
+    console.log(tileinfo)
+    console.log(tilevalue)
+  }
+
   const transitions = board.move(direction);
   if (transitions !== null) {
     makeTransitions(transitions);
+    
   }
 }
 
