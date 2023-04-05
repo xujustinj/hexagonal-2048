@@ -205,12 +205,23 @@ function move(direction) {
     console.log(tileinfo)
     console.log(tilevalue)
   }
+}
 
-  const transitions = board.move(direction);
-  if (transitions !== null) {
-    makeTransitions(transitions);
+function saveGame() {
+
+  let tilelist = {}
     
-  }
+  var progress = {
+    game: tilelist,
+    score: board.score
+  };
+  localStorage.setItem('progress', JSON.stringify(progress));
+}
+
+const transitions = board.move(direction);
+if (transitions !== null) {
+  makeTransitions(transitions);
+  
 }
 
 function makeTransitions(transitions) {
