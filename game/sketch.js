@@ -184,6 +184,7 @@ function control() {
   const direction = controller.getBuffer();
   if (direction !== null) {
     move(direction);
+    document.addEventListener('keyup', saveGame);
   }
 }
 
@@ -198,30 +199,18 @@ function move(direction) {
 
   console.log('Current score =', board.score)
 
-  for (let i = 0; i < board.tiles.length; i++) {
+  /* for (let i = 0; i < board.tiles.length; i++) {
     tile = Object.values(board.tiles[i])
     tileinfo = tile[0]
     tilevalue = tile[1] // the 'tilevalue' is the log2 of every tile, if tilevalue is 0, the tile is empty.
     console.log(tileinfo)
     console.log(tilevalue)
+  } */
+
+  const transitions = board.move(direction);
+  if (transitions !== null) {
+    makeTransitions(transitions);
   }
-}
-
-function saveGame() {
-
-  let tilelist = {}
-    
-  var progress = {
-    game: tilelist,
-    score: board.score
-  };
-  localStorage.setItem('progress', JSON.stringify(progress));
-}
-
-const transitions = board.move(direction);
-if (transitions !== null) {
-  makeTransitions(transitions);
-  
 }
 
 function makeTransitions(transitions) {
@@ -231,6 +220,34 @@ function makeTransitions(transitions) {
     ts.forEach((t) => (board.score += t.getScore()));
     controller.canMove = true;
   });
+}
+
+function saveGame() {
+
+  let tileList = []
+  for (let i = 0; i < board.tiles.length; i++) {
+    tile = Object.values(board.tiles[i])
+    tileCoordinates = tile[0]
+    tileValue = tile[1]
+    // console.log(tileCoordinates)
+    // console.log(tileValue)
+    var tileListItem = {
+      tileCoordinates: tileCoordinates,
+      tileValue: tileValue
+    }
+    // console.log(tileListItem)
+    tileList.push(tileListItem)
+  }
+
+  // console.log(tileList)
+    
+  var progress = {
+    game: tileList,
+    score: board.score
+  };
+  localStorage.setItem('progress', JSON.stringify(progress));
+
+  console.log(progress)
 }
 
 function windowResized() {
