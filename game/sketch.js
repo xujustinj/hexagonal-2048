@@ -163,6 +163,7 @@ function draw() {
 function keyPressed() {
   controller.pressKey(keyCode);
   control();
+  delay(1000).then(saveGame);
 }
 
 function touchStarted() {
@@ -175,16 +176,48 @@ function touchStarted() {
 function touchEnded() {
   controller.endSwipe(mouseX, mouseY, now());
   control();
+  delay(1000).then(saveGame);
 
   // Prevent the default touch action.
   return false;
+}
+
+function delay(time) {
+  return new Promise(resolve => setTimeout(resolve, time));
+}
+
+function saveGame() {
+
+  let tileList = []
+  for (let i = 0; i < board.tiles.length; i++) {
+    tile = Object.values(board.tiles[i])
+    tileCoordinates = tile[0]
+    tileValue = tile[1]
+    // console.log(tileCoordinates)
+    // console.log(tileValue)
+    var tileListItem = {
+      tileCoordinates: tileCoordinates,
+      tileValue: tileValue
+    }
+    // console.log(tileListItem)
+    tileList.push(tileListItem)
+  }
+
+  // console.log(tileList)
+    
+  var progress = {
+    game: tileList,
+    score: board.score
+  };
+  localStorage.setItem('progress', JSON.stringify(progress));
+
+  console.log(progress)
 }
 
 function control() {
   const direction = controller.getBuffer();
   if (direction !== null) {
     move(direction);
-    document.addEventListener('keyup', saveGame);
   }
 }
 
@@ -220,34 +253,6 @@ function makeTransitions(transitions) {
     ts.forEach((t) => (board.score += t.getScore()));
     controller.canMove = true;
   });
-}
-
-function saveGame() {
-
-  let tileList = []
-  for (let i = 0; i < board.tiles.length; i++) {
-    tile = Object.values(board.tiles[i])
-    tileCoordinates = tile[0]
-    tileValue = tile[1]
-    // console.log(tileCoordinates)
-    // console.log(tileValue)
-    var tileListItem = {
-      tileCoordinates: tileCoordinates,
-      tileValue: tileValue
-    }
-    // console.log(tileListItem)
-    tileList.push(tileListItem)
-  }
-
-  // console.log(tileList)
-    
-  var progress = {
-    game: tileList,
-    score: board.score
-  };
-  localStorage.setItem('progress', JSON.stringify(progress));
-
-  console.log(progress)
 }
 
 function windowResized() {
