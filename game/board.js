@@ -104,6 +104,19 @@ class Board {
     return null;
   }
 
+  loadGame() {
+    var savedGame = JSON.parse(localStorage.getItem('progress'));
+
+    if (typeof(savedGame.game) !== undefined) {
+      this.tiles = savedGame.game;
+    }
+    if (typeof(savedGame.game) !== undefined) {
+      this.score = savedGame.score;
+    }
+
+    return this.tiles;
+  }
+
   reset() {
     this.score = 0;
     this.tiles.forEach((tile) => tile.clear());
