@@ -147,7 +147,12 @@ function preload() {
 
 function setup() {
   display.setup();
-  reset();
+  loadGame();
+}
+
+function loadGame() {
+  const transitions = board.loadGame();
+  makeTransitions(transitions);
 }
 
 function reset() {
@@ -176,7 +181,7 @@ function touchStarted() {
 function touchEnded() {
   controller.endSwipe(mouseX, mouseY, now());
   control();
-  delay(1000).then(saveGame);
+  delay(500).then(saveGame);
 
   // Prevent the default touch action.
   return false;
@@ -188,25 +193,8 @@ function delay(time) {
 
 function saveGame() {
 
-  let tileList = []
-  for (let i = 0; i < board.tiles.length; i++) {
-    tile = Object.values(board.tiles[i])
-    tileCoordinates = tile[0]
-    tileValue = tile[1]
-    // console.log(tileCoordinates)
-    // console.log(tileValue)
-    var tileListItem = {
-      tileCoordinates: tileCoordinates,
-      tileValue: tileValue
-    }
-    // console.log(tileListItem)
-    tileList.push(tileListItem)
-  }
-
-  // console.log(tileList)
-    
   var progress = {
-    game: tileList,
+    game: board.tiles,
     score: board.score
   };
   localStorage.setItem('progress', JSON.stringify(progress));
@@ -231,14 +219,6 @@ function move(direction) {
   console.log(`Moving in direction: ${direction}`);
 
   console.log('Current score =', board.score)
-
-  /* for (let i = 0; i < board.tiles.length; i++) {
-    tile = Object.values(board.tiles[i])
-    tileinfo = tile[0]
-    tilevalue = tile[1] // the 'tilevalue' is the log2 of every tile, if tilevalue is 0, the tile is empty.
-    console.log(tileinfo)
-    console.log(tilevalue)
-  } */
 
   const transitions = board.move(direction);
   if (transitions !== null) {
