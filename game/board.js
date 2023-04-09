@@ -106,15 +106,28 @@ class Board {
 
   loadGame() {
     var savedGame = JSON.parse(localStorage.getItem('progress'));
+    console.log(savedGame);
 
-    if (typeof(savedGame.game) !== undefined) {
-      this.tiles = savedGame.game;
-    }
-    if (typeof(savedGame.game) !== undefined) {
+    if (typeof(savedGame.score) !== undefined) {
+      console.log(savedGame.score);
       this.score = savedGame.score;
     }
 
-    return this.tiles;
+    if (typeof(savedGame.game) !== undefined) {
+      this.tiles.forEach((tile) => tile.clear());
+      const transitions = this.tiles.map((tile) => new TileTransition(tile));
+      var game = savedGame.game;
+      const empty = transitions.filter((transition) => transition.isEmpty());
+      let i = 0;
+      for (const transition of empty) {
+        transition.loadTile(game[i]);
+        i++;
+      }
+      return transitions;
+    } else {
+      return this.reset()
+    }
+    
   }
 
   reset() {

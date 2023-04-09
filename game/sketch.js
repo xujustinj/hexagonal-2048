@@ -168,7 +168,7 @@ function draw() {
 function keyPressed() {
   controller.pressKey(keyCode);
   control();
-  delay(1000).then(saveGame);
+  delay(500).then(saveGame);
 }
 
 function touchStarted() {
