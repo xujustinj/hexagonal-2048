@@ -33,6 +33,7 @@ class Board {
 
   isGameOver() {
     // Whether the game is over.
+    console.log(Object.values(this.tiles)[0])
     return (
       this.tiles.every((tile) => !tile.isEmpty()) &&
       Array.from(this.graphs.values()).every((graph) => {
@@ -117,10 +118,13 @@ class Board {
       this.tiles.forEach((tile) => tile.clear());
       const transitions = this.tiles.map((tile) => new TileTransition(tile));
       var game = savedGame.game;
+      // var game = savedGame.game.map((savedTile) => new Tile(savedTile));
       const empty = transitions.filter((transition) => transition.isEmpty());
       let i = 0;
       for (const transition of empty) {
         transition.loadTile(game[i]);
+        this.tiles[i].coordinates = game[i].coordinates;
+        this.tiles[i].value = transition.newValue;
         i++;
       }
       return transitions;

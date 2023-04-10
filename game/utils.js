@@ -75,3 +75,7 @@ function setsEqual(a, b) {
   assert(b instanceof Set);
   return a.size === b.size && [...a].every((item) => b.has(item));
 }
+
+function delay(time) {
+  return new Promise(resolve => setTimeout(resolve, time));
+}

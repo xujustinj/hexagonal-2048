@@ -224,8 +224,6 @@ class P5Display {
     assert(this.transitions !== null);
     assert(0 <= t && t <= 1);
 
-    console.log(this.transitions)
-
     this.transitions
       .filter((transition) => transition.oldValue !== 0)
       .forEach((transition) => {

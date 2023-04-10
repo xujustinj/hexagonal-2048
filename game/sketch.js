@@ -187,10 +187,6 @@ function touchEnded() {
   return false;
 }
 
-function delay(time) {
-  return new Promise(resolve => setTimeout(resolve, time));
-}
-
 function saveGame() {
 
   var progress = {

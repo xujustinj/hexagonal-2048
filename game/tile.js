@@ -145,11 +145,12 @@ class TileTransition {
 
   loadTile(tile) {
     // Spawn the saved progress after refresh or disconnection.
-    this.oldvalue = 0;
+    this.oldValue = 0;
     assert(this.type === TileTransitionType.EMPTY);
     this.tile = tile;
     this.target = tile;
     this.newValue = tile.value;
+    this.tile.value = this.oldValue;
     this.type = TileTransitionType.SPAWN;
   }
 
