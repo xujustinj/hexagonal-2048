@@ -147,7 +147,12 @@ function preload() {
 
 function setup() {
   display.setup();
-  reset();
+  loadGame();
+}
+
+function loadGame() {
+  const transitions = board.loadGame();
+  makeTransitions(transitions);
 }
 
 function reset() {
@@ -163,6 +168,7 @@ function draw() {
 function keyPressed() {
   controller.pressKey(keyCode);
   control();
+  delay(500).then(saveGame);
 }
 
 function touchStarted() {
@@ -175,9 +181,21 @@ function touchStarted() {
 function touchEnded() {
   controller.endSwipe(mouseX, mouseY, now());
   control();
+  delay(500).then(saveGame);
 
   // Prevent the default touch action.
   return false;
+}
+
+function saveGame() {
+
+  var progress = {
+    game: board.tiles,
+    score: board.score
+  };
+  localStorage.setItem('progress', JSON.stringify(progress));
+
+  console.log(progress)
 }
 
 function control() {
@@ -195,6 +213,9 @@ function move(direction) {
   }
 
   console.log(`Moving in direction: ${direction}`);
+
+  console.log('Current score =', board.score)
+
   const transitions = board.move(direction);
   if (transitions !== null) {
     makeTransitions(transitions);
